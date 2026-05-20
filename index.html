@@ -793,14 +793,7 @@
   // ── XCONVERT SLIDER LOGIC ──
   const xcRange = document.getElementById('xc-range');
   if (xcRange) {
-    // Try to detect actual video file size for calculation
-    let videoFileSizeMB = 41; // default estimate
-
-    _videoPrecheck.addEventListener('change', () => {
-      const file = _videoPrecheck.files[0];
-      if (file) videoFileSizeMB = +(file.size / (1024 * 1024)).toFixed(1);
-      updateSliderDisplay(xcRange.value);
-    });
+    window._videoFileSizeMB = 41; // default estimate, updated when file selected
 
     function updateSliderDisplay(pct) {
       const fill = document.getElementById('slider-fill');
@@ -808,38 +801,42 @@
       const resultMb = document.getElementById('result-mb');
       const resultOk = document.getElementById('result-ok');
       const xcTip = document.getElementById('xc-tip');
+      const sliderResult = document.getElementById('slider-result');
 
-      if (!fill) return;
+      if (!fill || !sliderResult) return;
 
       fill.style.width = pct + '%';
-      pctLabel.textContent = pct + '%';
+      if (pctLabel) pctLabel.textContent = pct + '%';
 
-      const estimated = +(videoFileSizeMB * pct / 100).toFixed(1);
-      resultMb.textContent = estimated + ' MB';
+      const estimated = +(window._videoFileSizeMB * pct / 100).toFixed(1);
+      if (resultMb) resultMb.textContent = estimated + ' MB';
+      if (sliderResult) sliderResult.childNodes[0].textContent =
+        `📁 Video ${window._videoFileSizeMB} MB → sekitar `;
 
-      // Update slider result text with current file size
-      document.getElementById('slider-result').childNodes[0].textContent =
-        `📁 Video ${videoFileSizeMB} MB → sekitar `;
-
-      if (estimated <= 30) {
-        resultOk.textContent = ' ✅ Aman diupload!';
-        resultOk.style.color = '#4caf50';
-      } else {
-        resultOk.textContent = ' ⚠️ Masih terlalu besar, geser lebih kecil';
-        resultOk.style.color = '#e67e22';
+      if (resultOk) {
+        if (estimated <= 30) {
+          resultOk.textContent = ' ✅ Aman diupload!';
+          resultOk.style.color = '#4caf50';
+        } else {
+          resultOk.textContent = ' ⚠️ Masih terlalu besar, geser lebih kecil';
+          resultOk.style.color = '#e67e22';
+        }
       }
 
-      if (pct <= 20) {
-        xcTip.innerHTML = '💡 <b>Kualitas akan berkurang.</b> Coba 25–35% jika hasilnya terlalu buram.';
-      } else if (pct <= 40) {
-        xcTip.innerHTML = '✨ <b>Rekomendasi zona terbaik!</b> Kualitas bagus & ukuran kecil.';
-      } else if (pct <= 60) {
-        xcTip.innerHTML = '💡 Ukuran masih agak besar. Coba geser lebih ke kiri ya.';
-      } else {
-        xcTip.innerHTML = '⚠️ Terlalu besar, geser ke kiri hingga hasil di bawah 30 MB.';
+      if (xcTip) {
+        if (pct <= 20) {
+          xcTip.innerHTML = '💡 <b>Kualitas akan berkurang.</b> Coba 25–35% jika hasilnya terlalu buram.';
+        } else if (pct <= 40) {
+          xcTip.innerHTML = '✨ <b>Rekomendasi zona terbaik!</b> Kualitas bagus & ukuran kecil.';
+        } else if (pct <= 60) {
+          xcTip.innerHTML = '💡 Ukuran masih agak besar. Coba geser lebih ke kiri ya.';
+        } else {
+          xcTip.innerHTML = '⚠️ Terlalu besar, geser ke kiri hingga hasil di bawah 30 MB.';
+        }
       }
     }
 
+    window.updateSliderDisplay = updateSliderDisplay;
     xcRange.addEventListener('input', () => updateSliderDisplay(xcRange.value));
     updateSliderDisplay(xcRange.value);
   }
@@ -936,6 +933,11 @@
   _videoPrecheck.addEventListener('change', () => {
     const file = _videoPrecheck.files[0];
     if (!file) return;
+    // Update slider with real file size
+    window._videoFileSizeMB = +(file.size / (1024 * 1024)).toFixed(1);
+    if (window.updateSliderDisplay && document.getElementById('xc-range')) {
+      window.updateSliderDisplay(document.getElementById('xc-range').value);
+    }
     const MAX = 30 * 1024 * 1024; // 30 MB
     if (file.size > MAX) {
       const compressBox = document.getElementById('compress-box');
