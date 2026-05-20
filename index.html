@@ -378,6 +378,138 @@
       line-height: 1.8;
     }
 
+    /* ── XCONVERT GUIDE ── */
+    .xc-guide {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 4px;
+    }
+    .xc-step {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .xc-step-num {
+      min-width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #c9a464, #b8935a);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+    .xc-step-body {
+      flex: 1;
+      font-size: 13px;
+      color: #5a3a0e;
+      line-height: 1.5;
+    }
+    .xc-step-body b { color: #3a2008; }
+    .xc-step-body p { margin: 3px 0 6px; color: #7a5a2e; font-size: 12.5px; }
+    .xc-badge {
+      display: inline-block;
+      background: #e8f0fe;
+      color: #1a56db;
+      border: 1.5px solid #c3d4f8;
+      border-radius: 6px;
+      padding: 1px 7px;
+      font-size: 11.5px;
+      font-weight: 600;
+    }
+    .xc-badge.green {
+      background: #e6f4ea;
+      color: #1e7e34;
+      border-color: #b7dfc0;
+    }
+    .xc-mock-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin: 8px 0;
+    }
+    .xc-opt {
+      border: 1.5px solid #d0d5dd;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: #444;
+      text-align: center;
+      background: #fff;
+      line-height: 1.3;
+    }
+    .xc-opt small { font-size: 10px; color: #888; }
+    .xc-opt.selected {
+      border-color: #4f63d2;
+      color: #4f63d2;
+      font-weight: 700;
+      background: #eef1fd;
+      box-shadow: 0 0 0 2px #4f63d240;
+    }
+    /* Slider */
+    .xc-slider-wrap {
+      background: #fff;
+      border: 1.5px solid #e0c98a;
+      border-radius: 12px;
+      padding: 14px;
+      margin: 8px 0;
+    }
+    .xc-slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #999;
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+    .xc-slider-track {
+      position: relative;
+      height: 8px;
+      background: #e8e8e8;
+      border-radius: 99px;
+      margin-bottom: 10px;
+    }
+    .xc-slider-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      background: linear-gradient(90deg, #4f63d2, #7b8ff5);
+      border-radius: 99px;
+      width: 30%;
+      pointer-events: none;
+      transition: width 0.1s;
+    }
+    .xc-range {
+      position: absolute;
+      left: 0; top: -6px;
+      width: 100%;
+      height: 20px;
+      opacity: 0;
+      cursor: pointer;
+      margin: 0;
+    }
+    .xc-slider-result {
+      font-size: 13px;
+      color: #3a2008;
+      padding: 8px 10px;
+      background: #f8f4ec;
+      border-radius: 8px;
+      line-height: 1.6;
+    }
+    .xc-tip {
+      font-size: 12px;
+      color: #7a5218;
+      background: #fff9ec;
+      border-left: 3px solid #c9a464;
+      padding: 8px 10px;
+      border-radius: 0 8px 8px 0;
+      margin-top: 6px;
+    }
+
     /* ── STEP INDICATOR ── */
     .steps {
       display: flex;
@@ -537,24 +669,88 @@
 
         <!-- COMPRESS BOX — muncul jika video > 30MB -->
         <div class="compress-box" id="compress-box">
-          <h5>⚠️ Video terlalu besar!</h5>
-          <p>Videomu lebih dari <b>30 MB</b>. Yuk kompres dulu biar bisa diunggah — mudah & gratis! 💪</p>
-          <div class="compress-links">
-            <a href="https://compressyourvideo.com/" target="_blank" rel="noopener" class="compress-link primary">
-              🎯 CompressYourVideo (Terbaik!)
-            </a>
-            <a href="https://www.vidmore.com/free-online-video-compressor/" target="_blank" rel="noopener" class="compress-link secondary">
-              ✨ Vidmore (Tanpa Iklan)
-            </a>
-          </div>
-          <div class="compress-steps">
-            <b>Cara kompres di CompressYourVideo:</b><br>
-            1️⃣ Klik tombol <b>CompressYourVideo</b> di atas<br>
-            2️⃣ Upload videomu → pilih target ukuran <b>10 MB</b><br>
-            3️⃣ Klik <b>Compress</b> → tunggu sebentar<br>
-            4️⃣ Klik <b>Download</b> lalu upload ulang di sini ✅<br>
-            <span style="color:#b8935a">✨ 100% gratis, tanpa watermark, tanpa iklan, tanpa daftar!</span>
-          </div>
+          <h5>⚠️ Video terlalu besar dari 30 MB!</h5>
+          <p>Tenang, bisa dikompres dulu secara gratis di <b>xconvert.com</b> — ikuti panduan di bawah ya 💕</p>
+
+          <a href="https://xconvert.com/video-compressor" target="_blank" rel="noopener" class="compress-link primary" style="display:inline-flex;margin-bottom:14px;">
+            🎬 Buka xconvert.com (Gratis!)
+          </a>
+
+          <div class="xc-guide">
+
+            <!-- STEP 1 -->
+            <div class="xc-step">
+              <div class="xc-step-num">1</div>
+              <div class="xc-step-body">
+                <b>Upload video kamu</b>
+                <p>Klik tombol <span class="xc-badge">+ Add File</span> lalu pilih video dari galerimu</p>
+              </div>
+            </div>
+
+            <!-- STEP 2 -->
+            <div class="xc-step">
+              <div class="xc-step-num">2</div>
+              <div class="xc-step-body">
+                <b>Pilih <span class="xc-badge">Target file size (%)</span></b>
+                <p>Di bagian <b>FILE COMPRESSION</b>, tap kotak ini 👇</p>
+                <div class="xc-mock-options">
+                  <div class="xc-opt selected">Target file size<br><small>(%)</small></div>
+                  <div class="xc-opt">Specific file size</div>
+                  <div class="xc-opt">Constant Bitrate</div>
+                  <div class="xc-opt">Variable Bitrate</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 3 -->
+            <div class="xc-step">
+              <div class="xc-step-num">3</div>
+              <div class="xc-step-body">
+                <b>Geser slider ke angka <span id="pct-label" style="color:#c9a464">30%</span></b>
+                <p>Semakin kecil angkanya, semakin kecil ukuran videonya 👇</p>
+
+                <!-- Interactive slider illustration -->
+                <div class="xc-slider-wrap">
+                  <div class="xc-slider-labels">
+                    <span>1%<br><small>Sangat kecil</small></span>
+                    <span style="text-align:center">50%<br><small>Sedang</small></span>
+                    <span style="text-align:right">100%<br><small>Asli</small></span>
+                  </div>
+                  <div class="xc-slider-track">
+                    <div class="xc-slider-fill" id="slider-fill"></div>
+                    <input type="range" class="xc-range" id="xc-range" min="1" max="100" value="30">
+                  </div>
+                  <div class="xc-slider-result" id="slider-result">
+                    📁 Video 41 MB → sekitar <b id="result-mb">12 MB</b>
+                    <span id="result-ok" style="color:#4caf50;font-weight:700"> ✅ Aman diupload!</span>
+                  </div>
+                </div>
+
+                <div class="xc-tip" id="xc-tip">
+                  💡 <b>Rekomendasi:</b> Geser ke <b>30–35%</b> untuk hasil terbaik
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 4 -->
+            <div class="xc-step">
+              <div class="xc-step-num">4</div>
+              <div class="xc-step-body">
+                <b>Klik Compress lalu Download</b>
+                <p>Setelah selesai, klik <span class="xc-badge green">⬇ Download</span> dan simpan ke HP</p>
+              </div>
+            </div>
+
+            <!-- STEP 5 -->
+            <div class="xc-step">
+              <div class="xc-step-num">5</div>
+              <div class="xc-step-body">
+                <b>Upload ulang di sini ✅</b>
+                <p>Kembali ke form ini dan klik tombol <b>Pilih Video</b> lagi</p>
+              </div>
+            </div>
+
+          </div><!-- end xc-guide -->
         </div>
 
         <div class="upload-success" id="status_video">✅ Video berhasil diunggah!</div>
@@ -594,7 +790,61 @@
 
   const HARGA = { 'Gantungan Kunci': 20000, 'Figura': 50000, 'Frame 12 Bulan': 85000 };
 
-  // ── LOGO FALLBACK ──
+  // ── XCONVERT SLIDER LOGIC ──
+  const xcRange = document.getElementById('xc-range');
+  if (xcRange) {
+    // Try to detect actual video file size for calculation
+    let videoFileSizeMB = 41; // default estimate
+
+    _videoPrecheck.addEventListener('change', () => {
+      const file = _videoPrecheck.files[0];
+      if (file) videoFileSizeMB = +(file.size / (1024 * 1024)).toFixed(1);
+      updateSliderDisplay(xcRange.value);
+    });
+
+    function updateSliderDisplay(pct) {
+      const fill = document.getElementById('slider-fill');
+      const pctLabel = document.getElementById('pct-label');
+      const resultMb = document.getElementById('result-mb');
+      const resultOk = document.getElementById('result-ok');
+      const xcTip = document.getElementById('xc-tip');
+
+      if (!fill) return;
+
+      fill.style.width = pct + '%';
+      pctLabel.textContent = pct + '%';
+
+      const estimated = +(videoFileSizeMB * pct / 100).toFixed(1);
+      resultMb.textContent = estimated + ' MB';
+
+      // Update slider result text with current file size
+      document.getElementById('slider-result').childNodes[0].textContent =
+        `📁 Video ${videoFileSizeMB} MB → sekitar `;
+
+      if (estimated <= 30) {
+        resultOk.textContent = ' ✅ Aman diupload!';
+        resultOk.style.color = '#4caf50';
+      } else {
+        resultOk.textContent = ' ⚠️ Masih terlalu besar, geser lebih kecil';
+        resultOk.style.color = '#e67e22';
+      }
+
+      if (pct <= 20) {
+        xcTip.innerHTML = '💡 <b>Kualitas akan berkurang.</b> Coba 25–35% jika hasilnya terlalu buram.';
+      } else if (pct <= 40) {
+        xcTip.innerHTML = '✨ <b>Rekomendasi zona terbaik!</b> Kualitas bagus & ukuran kecil.';
+      } else if (pct <= 60) {
+        xcTip.innerHTML = '💡 Ukuran masih agak besar. Coba geser lebih ke kiri ya.';
+      } else {
+        xcTip.innerHTML = '⚠️ Terlalu besar, geser ke kiri hingga hasil di bawah 30 MB.';
+      }
+    }
+
+    xcRange.addEventListener('input', () => updateSliderDisplay(xcRange.value));
+    updateSliderDisplay(xcRange.value);
+  }
+
+
   const logoEl = document.getElementById('logoImg');
   if (logoEl) {
     logoEl.onerror = function() {
