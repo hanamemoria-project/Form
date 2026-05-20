@@ -509,7 +509,7 @@
 
       <div class="info-box">
         <h4>📌 Panduan Upload</h4>
-        <p>Langsung unggah foto dan video dari galerimu — tidak perlu Google Drive! Sistem kami akan memprosesnya otomatis 🚀<br>Jika videomu lebih dari 50 MB, kami siap bantu kompres ya! 💪</p>
+        <p>Langsung unggah foto dan video dari galerimu — tidak perlu Google Drive! Sistem kami akan memprosesnya otomatis 🚀<br>Jika videomu lebih dari 30 MB, kami siap bantu kompres ya! 💪</p>
       </div>
 
       <div class="fg">
@@ -527,7 +527,7 @@
         <label>🎬 Video Kenangan</label>
         <span class="warm-hint">Video singkat 15–30 detik sudah cukup untuk menyimpan momen terbaik 🥰</span>
         <div class="warn-box">
-          ✨ <b>Tips:</b> Durasi video cukup <b>15–30 detik</b> agar upload cepat dan hasil tetap cantik! Ukuran maksimal <b>50 MB</b> ya 💕
+          ✨ <b>Tips:</b> Durasi video cukup <b>15–30 detik</b> agar upload cepat dan hasil tetap cantik! Ukuran maksimal <b>30 MB</b> ya 💕
         </div>
         <button type="button" id="btn_upload_video" class="upload-btn">
           <span>🎬</span> Pilih Video
@@ -535,10 +535,10 @@
         <!-- Hidden file input for size pre-check -->
         <input type="file" id="video_precheck" accept="video/*" style="display:none">
 
-        <!-- COMPRESS BOX — muncul jika video > 50MB -->
+        <!-- COMPRESS BOX — muncul jika video > 30MB -->
         <div class="compress-box" id="compress-box">
           <h5>⚠️ Video terlalu besar!</h5>
-          <p>Videomu lebih dari <b>50 MB</b>. Yuk kompres dulu biar bisa diunggah — mudah & gratis! 💪</p>
+          <p>Videomu lebih dari <b>30 MB</b>. Yuk kompres dulu biar bisa diunggah — mudah & gratis! 💪</p>
           <div class="compress-links">
             <a href="https://compressyourvideo.com/" target="_blank" rel="noopener" class="compress-link primary">
               🎯 CompressYourVideo (Terbaik!)
@@ -641,7 +641,7 @@
   const widgetVideo = cloudinary.createUploadWidget({
     cloudName: CLOUD_NAME, uploadPreset: UPLOAD_PRESET,
     sources: ['local','camera'], clientAllowedFormats: ['video'],
-    maxVideoFileSize: 52428800, multiple: false
+    maxVideoFileSize: 31457280, multiple: false
   }, (err, res) => {
     const compressBox = document.getElementById('compress-box');
     // Detect file too large error from Cloudinary widget
@@ -654,7 +654,7 @@
     }
     if (res?.event === 'queues-end' && res?.info?.files) {
       // check if any file was rejected for size
-      const rejected = res.info.files.some(f => f.size > 52428800);
+      const rejected = res.info.files.some(f => f.size > 31457280);
       if (rejected) {
         compressBox.style.display = 'block';
         compressBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -686,7 +686,7 @@
   _videoPrecheck.addEventListener('change', () => {
     const file = _videoPrecheck.files[0];
     if (!file) return;
-    const MAX = 50 * 1024 * 1024; // 50 MB
+    const MAX = 30 * 1024 * 1024; // 30 MB
     if (file.size > MAX) {
       const compressBox = document.getElementById('compress-box');
       compressBox.style.display = 'block';
@@ -699,7 +699,7 @@
 
   // Listen for Cloudinary widget upload-added event to catch oversized files early
   widgetVideo.on && widgetVideo.on('upload-added', (err, res) => {
-    if (res?.info?.file?.size > 52428800) {
+    if (res?.info?.file?.size > 31457280) {
       const compressBox = document.getElementById('compress-box');
       compressBox.style.display = 'block';
       compressBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
