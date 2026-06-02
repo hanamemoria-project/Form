@@ -641,7 +641,7 @@
 
       <div class="info-box">
         <h4>📌 Panduan Upload</h4>
-        <p>Langsung unggah foto dan video dari galerimu — tidak perlu Google Drive! Sistem kami akan memprosesnya otomatis 🚀<br>Jika videomu lebih dari 30 MB, kami siap bantu kompres ya! 💪</p>
+        <p>Langsung unggah foto dan video dari galerimu — tidak perlu Google Drive! Sistem kami akan memprosesnya otomatis 🚀<br>Jika videomu lebih dari 15 MB, kami siap bantu kompres ya! 💪</p>
       </div>
 
       <div class="fg">
@@ -659,7 +659,7 @@
         <label>🎬 Video Kenangan</label>
         <span class="warm-hint">Video singkat 15–30 detik sudah cukup untuk menyimpan momen terbaik 🥰</span>
         <div class="warn-box">
-          ✨ <b>Tips:</b> Durasi video cukup <b>15–30 detik</b> agar upload cepat dan hasil tetap cantik! Ukuran maksimal <b>30 MB</b> ya 💕
+          ✨ <b>Tips:</b> Durasi video cukup <b>15–30 detik</b> agar upload cepat dan hasil tetap cantik! Ukuran maksimal <b>15 MB</b> ya 💕
         </div>
         <button type="button" id="btn_upload_video" class="upload-btn">
           <span>🎬</span> Pilih Video
@@ -669,7 +669,7 @@
 
         <!-- COMPRESS BOX — muncul jika video > 30MB -->
         <div class="compress-box" id="compress-box">
-          <h5>⚠️ Video terlalu besar dari 30 MB!</h5>
+          <h5>⚠️ Video terlalu besar dari 15 MB!</h5>
           <p>Tenang, bisa dikompres dulu secara gratis di <b>xconvert.com</b> — ikuti panduan di bawah ya 💕</p>
 
           <a href="https://xconvert.com/video-compressor" target="_blank" rel="noopener" class="compress-link primary" style="display:inline-flex;margin-bottom:14px;">
@@ -814,7 +814,7 @@
         `📁 Video ${window._videoFileSizeMB} MB → sekitar `;
 
       if (resultOk) {
-        if (estimated <= 30) {
+        if (estimated <= 15) {
           resultOk.textContent = ' ✅ Aman diupload!';
           resultOk.style.color = '#4caf50';
         } else {
@@ -831,7 +831,7 @@
         } else if (pct <= 60) {
           xcTip.innerHTML = '💡 Ukuran masih agak besar. Coba geser lebih ke kiri ya.';
         } else {
-          xcTip.innerHTML = '⚠️ Terlalu besar, geser ke kiri hingga hasil di bawah 30 MB.';
+          xcTip.innerHTML = '⚠️ Terlalu besar, geser ke kiri hingga hasil di bawah 15 MB.';
         }
       }
     }
@@ -888,7 +888,7 @@
   const widgetVideo = cloudinary.createUploadWidget({
     cloudName: CLOUD_NAME, uploadPreset: UPLOAD_PRESET,
     sources: ['local','camera'], clientAllowedFormats: ['video'],
-    maxVideoFileSize: 31457280, multiple: false
+    maxVideoFileSize: 15728640, multiple: false
   }, (err, res) => {
     const compressBox = document.getElementById('compress-box');
     // Detect file too large error from Cloudinary widget
@@ -901,7 +901,7 @@
     }
     if (res?.event === 'queues-end' && res?.info?.files) {
       // check if any file was rejected for size
-      const rejected = res.info.files.some(f => f.size > 31457280);
+      const rejected = res.info.files.some(f => f.size > 15728640);
       if (rejected) {
         compressBox.style.display = 'block';
         compressBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -938,7 +938,7 @@
     if (window.updateSliderDisplay && document.getElementById('xc-range')) {
       window.updateSliderDisplay(document.getElementById('xc-range').value);
     }
-    const MAX = 30 * 1024 * 1024; // 30 MB
+    const MAX = 15 * 1024 * 1024; // 15 MB
     if (file.size > MAX) {
       const compressBox = document.getElementById('compress-box');
       compressBox.style.display = 'block';
@@ -951,7 +951,7 @@
 
   // Listen for Cloudinary widget upload-added event to catch oversized files early
   widgetVideo.on && widgetVideo.on('upload-added', (err, res) => {
-    if (res?.info?.file?.size > 31457280) {
+    if (res?.info?.file?.size > 15728640) {
       const compressBox = document.getElementById('compress-box');
       compressBox.style.display = 'block';
       compressBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
