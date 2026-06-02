@@ -1,1071 +1,761 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Form Pesanan — Hana Memoria</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hana Memoria</title>
+    
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 
-  <style>
-    :root {
-      --gold:        #b8935a;
-      --gold-light:  #d4af7a;
-      --gold-pale:   #f5ead8;
-      --brown-dark:  #5c3d1e;
-      --cream:       #fdf8f1;
-      --cream-2:     #f7efe2;
-      --ink:         #3b2a1a;
-      --ink-muted:   #8a7060;
-      --border:      #e8d9c4;
-      --success:     #4a7c59;
-      --warn-bg:     #fef8ec;
-      --warn-border: #e8c97a;
-    }
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,500;1,600&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #0d0d0d;
+            font-family: 'Poppins', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            color: #e0bfb8;
+        }
+        canvas { display: block; }
+        
+        /* ================== UI PELACAK TANGAN ================== */
+        #main-hand-ui {
+            position: fixed; inset: 0; z-index: 100;
+            display: none;
+        }
+        
+        #ui-layer {
+            position: absolute; bottom: 5vh; left: 5vw; right: 5vw;
+            pointer-events: none;
+        }
+        #ui-layer h1 { margin: 0; font-size: clamp(1.3rem, 5vw, 1.8rem); font-weight: 400; letter-spacing: 3px; font-family: 'Playfair Display', serif; }
+        #ui-layer p.tagline { margin: 5px 0 0 0; font-size: clamp(0.85rem, 3vw, 1rem); opacity: 0.8; font-weight: 300; }
+        
+        #gesture-hint {
+            margin-top: 15px; padding: 8px 15px; display: inline-block;
+            background: rgba(224, 191, 184, 0.1); border-left: 3px solid #d8a07c;
+            border-radius: 4px; font-style: italic; font-size: clamp(0.75rem, 2.5vw, 0.85rem);
+            color: #e0bfb8; backdrop-filter: blur(5px); transition: all 0.3s ease;
+        }
+        #gesture-hint span { color: #d8a07c; font-weight: 600; font-style: normal; }
+        
+        #status-bar {
+            position: absolute; top: 20px; left: 20px;
+            background: rgba(224, 191, 184, 0.1); border: 1px solid rgba(224, 191, 184, 0.3);
+            padding: 8px 15px; border-radius: 20px; font-size: 0.85rem;
+            backdrop-filter: blur(5px); display: flex; align-items: center; gap: 10px;
+        }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background-color: #ffaa00; box-shadow: 0 0 8px currentColor; }
+        .dot.active { background-color: #00ffaa; }
+        .dot.error { background-color: #ff0044; }
 
-    body {
-      background: var(--cream);
-      font-family: 'DM Sans', sans-serif;
-      min-height: 100vh;
-      padding: 40px 20px 80px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background-image:
-        radial-gradient(ellipse 80% 60% at 50% -10%, #edd9b822 0%, transparent 70%),
-        repeating-linear-gradient(0deg, transparent, transparent 39px, #e8d9c412 39px, #e8d9c412 40px),
-        repeating-linear-gradient(90deg, transparent, transparent 39px, #e8d9c412 39px, #e8d9c412 40px);
-    }
+        #start-btn {
+            background: #e0bfb8; color: #0d0d0d; border: none; padding: 6px 12px;
+            border-radius: 15px; font-weight: bold; cursor: pointer; font-size: 0.8rem;
+            transition: opacity 0.2s; font-family: 'Poppins', sans-serif; pointer-events: auto;
+        }
+        #start-btn:active { opacity: 0.7; }
 
-    /* ── CARD ── */
-    .card {
-      background: #fff;
-      max-width: 540px;
-      width: 100%;
-      border-radius: 28px;
-      box-shadow: 0 2px 4px #b8935a08, 0 12px 40px #b8935a12, 0 40px 80px #b8935a08;
-      border: 1px solid var(--border);
-      overflow: hidden;
-      animation: rise 0.7s cubic-bezier(0.22,1,0.36,1) both;
-    }
-    @keyframes rise {
-      from { opacity:0; transform: translateY(28px); }
-      to   { opacity:1; transform: translateY(0); }
-    }
+        /* ================== UI KARTU PESAN (UPDATED) ================== */
+        #loading {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0d0d0d; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            font-size: 18px; font-weight: 200; letter-spacing: 2px; z-index: 2000; transition: opacity 0.5s; text-align: center;
+        }
+        #loading.fade-out { opacity: 0; pointer-events: none; }
 
-    /* ── HEADER ── */
-    .card-header {
-      background: linear-gradient(160deg, #f9f2e6 0%, #fff 60%);
-      border-bottom: 1px solid var(--border);
-      padding: 44px 40px 36px;
-      text-align: center;
-      position: relative;
-    }
-    .card-header::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23b8935a' fill-opacity='0.04'%3E%3Ccircle cx='20' cy='20' r='1'/%3E%3C/g%3E%3C/svg%3E");
-      pointer-events: none;
-    }
+        #message-card {
+            position: absolute; top: 45%; left: 50%; 
+            transform: translate3d(-50%, -40%, 0);
+            width: 320px; 
+            /* Transparansi Kaca (Glassmorphism) */
+            background: rgba(20, 20, 25, 0.15); 
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border: 1px solid rgba(224, 191, 184, 0.2); 
+            border-radius: 15px;
+            padding: 30px; text-align: center; color: white;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            opacity: 0; pointer-events: none; 
+            transition: opacity 1s ease-out, transform 1s ease-out; z-index: 150;
+        }
+        #message-card.show { opacity: 1; transform: translate3d(-50%, -50%, 0); pointer-events: auto; }
+        
+        #card-text-wrapper { transition: opacity 0.3s ease; }
+        #message-card h3 { color: #e0bfb8; font-family: 'Playfair Display', serif; font-size: 24px; margin-top: 0; margin-bottom: 15px; font-weight: 600; font-style: italic; text-shadow: 0 2px 5px rgba(0,0,0,0.5);}
+        #message-card p { font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 300; line-height: 1.7; margin-bottom: 5px; color: rgba(255,255,255,0.95); text-shadow: 0 1px 3px rgba(0,0,0,0.5);}
+        
+        /* ================== UI PEMINDAI ================== */
+        #mindar-overlay-container {
+            position: fixed; inset: 0; z-index: 1000;
+            display: none; background: transparent;
+        }
+        #mindar-overlay-container.active { display: block; }
+        
+        #ar-scene-target-container {
+            position: absolute; top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            overflow: hidden;
+        }
 
-    .logo-wrap {
-      position: relative;
-      display: inline-block;
-      margin-bottom: 20px;
-    }
-    .logo-wrap img {
-      width: 130px;
-      height: 130px;
-      object-fit: contain;
-      display: block;
-      filter: drop-shadow(0 4px 16px #b8935a22);
-      animation: floatLogo 4s ease-in-out infinite;
-    }
-    @keyframes floatLogo {
-      0%,100% { transform: translateY(0);   }
-      50%      { transform: translateY(-5px); }
-    }
+        #tutorial-overlay { position: fixed; inset: 0; z-index: 1500; display: none; flex-direction: column; justify-content: center; align-items: center; background: rgba(0, 0, 0, 0.3); color: white; backdrop-filter: blur(2px); pointer-events: none; }
+        #tutorial-overlay * { pointer-events: none; }
+        .tutorial-logo-container { position: relative; width: 160px; height: 160px; display: flex; justify-content: center; align-items: center; animation: pulseLogo 3.0s ease-in-out infinite; margin-bottom: 40px; }
+        .tutorial-logo { width: 100%; height: auto; object-fit: contain; filter: drop-shadow(0 0 10px rgba(255,255,255,0.5)); }
+        @keyframes pulseLogo { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .scan-line-logo { position: absolute; top: 0%; left: 0%; right: 0%; height: 3px; background: #e0bfb8; box-shadow: 0 0 15px #e0bfb8; animation: scanUpDownLogo 2.5s ease-in-out infinite; border-radius: 50%; z-index: 2; }
+        @keyframes scanUpDownLogo { 0% { top: 0%; opacity: 0; } 15% { opacity: 1; } 50% { top: 100%; } 85% { opacity: 1; } 100% { top: 0%; opacity: 0; } }
+        .tutorial-text h3 { font-family: 'Playfair Display', serif; font-weight: 600; font-size: 21px; margin: 0 0 10px 0; letter-spacing: 1px; color: #fff;}
+        .tutorial-text p { font-family: 'Poppins', sans-serif; font-weight: 300; font-size: 13px; color: rgba(255, 255, 255, 0.9); margin: 0; line-height: 1.7;}
 
-    .tagline {
-      font-family: 'Cormorant Garamond', serif;
-      font-style: italic;
-      font-size: 15px;
-      color: var(--gold);
-      letter-spacing: 0.05em;
-      margin-bottom: 6px;
-    }
-    .card-header h1 {
-      font-family: 'Cormorant Garamond', serif;
-      font-weight: 600;
-      font-size: 32px;
-      color: var(--brown-dark);
-      letter-spacing: 0.04em;
-      line-height: 1.1;
-      margin-bottom: 10px;
-    }
-    .header-divider {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      justify-content: center;
-      margin-top: 14px;
-    }
-    .header-divider span { width: 48px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-light)); }
-    .header-divider span:last-child { background: linear-gradient(90deg, var(--gold-light), transparent); }
-    .header-divider em { font-family: 'Cormorant Garamond', serif; font-style: normal; font-size: 18px; color: var(--gold); }
+        @media (max-width: 600px) { #message-card { width: 80%; padding: 25px; } }
 
-    /* ── BODY ── */
-    .card-body { padding: 40px; }
-
-    /* ── SECTION LABEL ── */
-    .section-label {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin: 32px 0 20px;
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--brown-dark);
-      letter-spacing: 0.03em;
-    }
-    .section-label:first-child { margin-top: 0; }
-    .section-label::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: linear-gradient(90deg, var(--border), transparent);
-    }
-
-    /* ── FORM GROUP ── */
-    .fg { margin-bottom: 20px; }
-    .fg label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--ink-muted);
-      margin-bottom: 8px;
-    }
-    .fg .hint {
-      font-size: 12px;
-      color: var(--ink-muted);
-      margin-bottom: 8px;
-      line-height: 1.5;
-      letter-spacing: 0;
-      text-transform: none;
-      font-weight: 400;
-    }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 13px 16px;
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      font-size: 14px;
-      font-family: 'DM Sans', sans-serif;
-      background: var(--cream);
-      color: var(--ink);
-      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-      appearance: none;
-    }
-    input::placeholder, textarea::placeholder { color: #c4b09a; }
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: var(--gold);
-      background: #fff;
-      box-shadow: 0 0 0 3px #b8935a18;
-    }
-    select {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23b8935a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 14px center;
-      padding-right: 36px;
-      cursor: pointer;
-    }
-    select:disabled { opacity: 0.5; cursor: not-allowed; }
-    textarea { resize: vertical; min-height: 80px; }
-
-    /* ── TOTAL BOX ── */
-    .total-box {
-      display: none;
-      background: linear-gradient(135deg, #f9f3e8, #fef8f0);
-      border: 1.5px dashed var(--gold-light);
-      padding: 16px 20px;
-      border-radius: 14px;
-      margin-top: 12px;
-      text-align: center;
-    }
-    .total-box .tl { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
-    .total-box .price { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 600; color: var(--brown-dark); }
-
-    /* ── UPLOAD BUTTON ── */
-    .upload-btn {
-      width: 100%;
-      padding: 14px;
-      background: var(--cream-2);
-      border: 2px dashed var(--border);
-      border-radius: 12px;
-      color: var(--ink-muted);
-      font-size: 14px;
-      font-weight: 500;
-      font-family: 'DM Sans', sans-serif;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.2s;
-    }
-    .upload-btn:hover { border-color: var(--gold); color: var(--gold); background: #fdf5e8; }
-    .upload-success { color: var(--success); font-size: 12px; font-weight: 600; margin-top: 8px; display: none; }
-
-    .preview-img { max-width: 100%; max-height: 220px; border-radius: 12px; margin-top: 12px; border: 2px solid var(--border); display: none; }
-    .preview-vid { max-width: 100%; max-height: 200px; border-radius: 12px; margin-top: 12px; border: 2px solid var(--border); display: none; }
-
-    /* ── WARN BOX ── */
-    .warn-box {
-      background: var(--warn-bg);
-      border: 1px solid var(--warn-border);
-      border-radius: 12px;
-      padding: 14px 16px;
-      font-size: 13px;
-      color: #7a5a1e;
-      line-height: 1.6;
-      margin-bottom: 14px;
-    }
-
-    /* ── INFO BOX ── */
-    .info-box {
-      background: #eef6fb;
-      border: 1px solid #c8e0ef;
-      border-radius: 14px;
-      padding: 18px 20px;
-      margin-bottom: 24px;
-    }
-    .info-box h4 { font-size: 13px; font-weight: 600; color: #1e5a82; margin-bottom: 8px; }
-    .info-box p { font-size: 13px; color: #2d6a96; line-height: 1.6; }
-
-    /* ── SUBMIT ── */
-    .submit-btn {
-      width: 100%;
-      padding: 18px;
-      background: linear-gradient(135deg, #c9a464, #b8935a, #a07842);
-      color: #fff;
-      border: none;
-      border-radius: 14px;
-      font-size: 15px;
-      font-weight: 600;
-      font-family: 'DM Sans', sans-serif;
-      letter-spacing: 0.04em;
-      cursor: pointer;
-      transition: all 0.3s;
-      margin-top: 8px;
-      position: relative;
-      overflow: hidden;
-    }
-    .submit-btn::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, #d4af7a, #c9a464);
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    .submit-btn:hover::before { opacity: 1; }
-    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px #b8935a40; }
-    .submit-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
-    .submit-btn span { position: relative; z-index: 1; }
-
-    .submit-note { font-size: 11px; text-align: center; color: var(--ink-muted); margin-top: 12px; font-style: italic; }
-
-    /* ── HR ── */
-    hr { border: 0; border-top: 1px solid var(--border); margin: 28px 0; }
-
-    /* ── SUCCESS ── */
-    #success-message {
-      display: none;
-      padding: 60px 40px;
-      text-align: center;
-    }
-    .success-icon { font-size: 64px; margin-bottom: 20px; animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
-    @keyframes popIn { from { transform: scale(0); opacity:0; } to { transform: scale(1); opacity:1; } }
-    #success-message h2 { font-family: 'Cormorant Garamond', serif; font-size: 28px; color: var(--brown-dark); margin-bottom: 12px; }
-    #success-message p { font-size: 14px; color: var(--ink-muted); line-height: 1.7; }
-
-    /* ── WARM HINT ── */
-    .warm-hint {
-      font-size: 12.5px;
-      color: var(--gold);
-      font-style: italic;
-      margin-bottom: 7px;
-      display: block;
-      letter-spacing: 0;
-      text-transform: none;
-      font-weight: 400;
-    }
-
-    /* ── COMPRESS VIDEO BOX ── */
-    .compress-box {
-      display: none;
-      background: linear-gradient(135deg, #fff8ec, #fff3e0);
-      border: 1.5px solid #e8b45a;
-      border-radius: 14px;
-      padding: 16px 18px;
-      margin-top: 12px;
-      animation: slideDown 0.4s cubic-bezier(0.22,1,0.36,1);
-    }
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-10px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .compress-box h5 {
-      font-size: 13px;
-      font-weight: 700;
-      color: #7a4a0e;
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .compress-box p {
-      font-size: 12.5px;
-      color: #8a5a1e;
-      line-height: 1.6;
-      margin-bottom: 12px;
-    }
-    .compress-links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .compress-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 14px;
-      border-radius: 10px;
-      font-size: 12.5px;
-      font-weight: 600;
-      text-decoration: none;
-      transition: all 0.2s;
-      border: 1.5px solid transparent;
-    }
-    .compress-link.primary {
-      background: linear-gradient(135deg, #c9a464, #b8935a);
-      color: #fff;
-    }
-    .compress-link.primary:hover { transform: translateY(-1px); box-shadow: 0 4px 14px #b8935a40; }
-    .compress-link.secondary {
-      background: #fff;
-      color: var(--brown-dark);
-      border-color: var(--border);
-    }
-    .compress-link.secondary:hover { border-color: var(--gold); color: var(--gold); }
-    .compress-steps {
-      font-size: 12px;
-      color: #7a5a1e;
-      margin-top: 10px;
-      padding: 10px 12px;
-      background: #fff9f0;
-      border-radius: 8px;
-      border-left: 3px solid var(--gold-light);
-      line-height: 1.8;
-    }
-
-    /* ── XCONVERT GUIDE ── */
-    .xc-guide {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      margin-top: 4px;
-    }
-    .xc-step {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-    }
-    .xc-step-num {
-      min-width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #c9a464, #b8935a);
-      color: #fff;
-      font-size: 13px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-top: 2px;
-      flex-shrink: 0;
-    }
-    .xc-step-body {
-      flex: 1;
-      font-size: 13px;
-      color: #5a3a0e;
-      line-height: 1.5;
-    }
-    .xc-step-body b { color: #3a2008; }
-    .xc-step-body p { margin: 3px 0 6px; color: #7a5a2e; font-size: 12.5px; }
-    .xc-badge {
-      display: inline-block;
-      background: #e8f0fe;
-      color: #1a56db;
-      border: 1.5px solid #c3d4f8;
-      border-radius: 6px;
-      padding: 1px 7px;
-      font-size: 11.5px;
-      font-weight: 600;
-    }
-    .xc-badge.green {
-      background: #e6f4ea;
-      color: #1e7e34;
-      border-color: #b7dfc0;
-    }
-    .xc-mock-options {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-      margin: 8px 0;
-    }
-    .xc-opt {
-      border: 1.5px solid #d0d5dd;
-      border-radius: 8px;
-      padding: 8px 10px;
-      font-size: 12px;
-      color: #444;
-      text-align: center;
-      background: #fff;
-      line-height: 1.3;
-    }
-    .xc-opt small { font-size: 10px; color: #888; }
-    .xc-opt.selected {
-      border-color: #4f63d2;
-      color: #4f63d2;
-      font-weight: 700;
-      background: #eef1fd;
-      box-shadow: 0 0 0 2px #4f63d240;
-    }
-    /* Slider */
-    .xc-slider-wrap {
-      background: #fff;
-      border: 1.5px solid #e0c98a;
-      border-radius: 12px;
-      padding: 14px;
-      margin: 8px 0;
-    }
-    .xc-slider-labels {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      color: #999;
-      margin-bottom: 10px;
-      line-height: 1.3;
-    }
-    .xc-slider-track {
-      position: relative;
-      height: 8px;
-      background: #e8e8e8;
-      border-radius: 99px;
-      margin-bottom: 10px;
-    }
-    .xc-slider-fill {
-      position: absolute;
-      left: 0; top: 0; bottom: 0;
-      background: linear-gradient(90deg, #4f63d2, #7b8ff5);
-      border-radius: 99px;
-      width: 30%;
-      pointer-events: none;
-      transition: width 0.1s;
-    }
-    .xc-range {
-      position: absolute;
-      left: 0; top: -6px;
-      width: 100%;
-      height: 20px;
-      opacity: 0;
-      cursor: pointer;
-      margin: 0;
-    }
-    .xc-slider-result {
-      font-size: 13px;
-      color: #3a2008;
-      padding: 8px 10px;
-      background: #f8f4ec;
-      border-radius: 8px;
-      line-height: 1.6;
-    }
-    .xc-tip {
-      font-size: 12px;
-      color: #7a5218;
-      background: #fff9ec;
-      border-left: 3px solid #c9a464;
-      padding: 8px 10px;
-      border-radius: 0 8px 8px 0;
-      margin-top: 6px;
-    }
-
-    /* ── STEP INDICATOR ── */
-    .steps {
-      display: flex;
-      justify-content: center;
-      gap: 6px;
-      margin-bottom: 32px;
-    }
-    .step-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--border);
-      transition: all 0.3s;
-    }
-    .step-dot.active { background: var(--gold); width: 24px; border-radius: 4px; }
-
-    /* ── ROW ── */
-    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    @media (max-width: 480px) {
-      .card-body { padding: 28px 24px; }
-      .card-header { padding: 36px 24px 28px; }
-      .row-2 { grid-template-columns: 1fr; }
-    }
-  </style>
+        
+    </style>
 </head>
 <body>
 
-<div class="card">
-  <!-- HEADER -->
-  <div class="card-header">
-    <div class="logo-wrap">
-      <img src="https://pub-02d853231cff4efa92ee6754c646a898.r2.dev/Logo_HM.png"
-           alt="Hana Memoria Logo"
-           id="logoImg"
-           onerror="this.style.display='none';document.querySelector('.logo-text-fallback').style.display='block';">
-      <div class="logo-text-fallback" style="display:none; font-family:'Cormorant Garamond',serif; font-size:52px; font-weight:300; letter-spacing:0.1em; color:var(--gold); line-height:1; padding:10px 0; text-shadow: 0 2px 8px #b8935a30;">HM</div>
+    <div id="loading">Menyiapkan Memori...<br><span style="font-size: 12px; opacity: 0.5; margin-top: 10px; display: block;" id="loading-sub">Menghubungkan ke server</span></div>
+
+
+    <!-- Petunjuk Arahkan Tangan ke Kamera -->
+    <div id="hand-guide-overlay" style="
+        display: none;
+        position: fixed; inset: 0; z-index: 200;
+        background: rgba(0,0,0,0.72);
+        backdrop-filter: blur(3px);
+        flex-direction: column;
+        align-items: center; justify-content: center;
+        text-align: center;
+        padding: 30px;
+        font-family: 'Poppins', sans-serif;
+        color: #e0bfb8;
+        pointer-events: none;
+    ">
+        <div style="font-size: clamp(56px,18vw,90px); margin-bottom: 16px; animation: handBob 1.5s ease-in-out infinite;">🤚</div>
+        <h2 style="font-family: 'Playfair Display', serif; font-size: clamp(1.1rem,4.5vw,1.5rem); font-weight:500; letter-spacing:1px; margin: 0 0 10px; color:#fff;">Arahkan Tanganmu ke Kamera Depan</h2>
+        <p style="font-size: clamp(0.8rem,3vw,0.95rem); font-weight:300; opacity:0.85; line-height:1.6; max-width:300px; margin: 0 auto 20px;">
+            Pastikan <strong style="color:#d8a07c;">telapak tangan</strong> terlihat jelas di layar.<br>
+            Sensor akan mengenali gesturmu secara otomatis. ✨
+        </p>
+        <div style="display:flex; flex-direction:column; gap:8px; align-items:center; font-size: clamp(0.75rem,2.8vw,0.85rem); opacity:0.7;">
+            <span>💡 Cahaya cukup &nbsp;·&nbsp; Tangan penuh terlihat</span>
+            <span>📱 Gunakan kamera depan HP</span>
+        </div>
     </div>
-    <p class="tagline">Mengabadikan cerita dalam setiap bingkai</p>
-    <h1>Form Pemesanan</h1>
-    <div class="header-divider">
-      <span></span>
-      <em>✦</em>
-      <span></span>
-    </div>
-  </div>
-
-  <!-- BODY -->
-  <div class="card-body">
-    <div id="form-content">
-
-      <div class="section-label">👤 Data Pemesan</div>
-
-      <div class="row-2">
-        <div class="fg">
-          <label>👤 Nama Lengkap</label>
-          <span class="warm-hint">Siapa nama indahmu? ✨</span>
-          <input type="text" name="nama" id="nama" required placeholder="Nama kamu">
-        </div>
-        <div class="fg">
-          <label>📱 Nomor WhatsApp</label>
-          <span class="warm-hint">Kami akan menghubungimu di sini 💌</span>
-          <input type="tel" name="whatsapp" id="wa_input" required placeholder="0812xxxxxx">
-        </div>
-      </div>
-
-      <div class="section-label">🛍️ Detail Pesanan</div>
-
-      <div class="row-2">
-        <div class="fg">
-          <label>🎁 Jenis Produk</label>
-          <span class="warm-hint">Pilih kenangan yang ingin kamu abadikan 🌸</span>
-          <select name="jenis" id="jenis_input" required>
-            <option value="" disabled selected>Pilih produk…</option>
-            <option value="Gantungan Kunci">Gantungan Kunci</option>
-            <option value="Figura" disabled>Figura (Segera Hadir)</option>
-            <option value="Frame 12 Bulan" disabled>Frame 12 Bulan (Segera Hadir)</option>
-          </select>
-        </div>
-        <div class="fg">
-          <label>🔢 Jumlah</label>
-          <span class="warm-hint">Berapa banyak yang kamu butuhkan? 💛</span>
-          <input type="number" name="jumlah" id="jumlah_input" min="1" value="1" required>
-        </div>
-      </div>
-
-      <div id="total_pembayaran_container" class="total-box">
-        <div class="tl">Estimasi Total Pembayaran</div>
-        <div id="text_total" class="price">Rp 0</div>
-      </div>
-
-      <hr>
-
-      <div class="section-label">📦 Alamat Pengiriman</div>
-
-      <div class="fg">
-        <label>🗺️ Provinsi</label>
-        <span class="warm-hint">Di mana kenangan ini akan dikirimkan? 📦</span>
-        <select name="id_provinsi" id="provinsi" required>
-          <option value="" disabled selected>Memuat Provinsi…</option>
-        </select>
-        <input type="hidden" name="provinsi" id="nama_provinsi">
-      </div>
-
-      <div class="row-2">
-        <div class="fg">
-          <label>🏙️ Kota / Kabupaten</label>
-          <select name="id_kota" id="kota" required disabled>
-            <option value="" disabled selected>Pilih provinsi dulu…</option>
-          </select>
-          <input type="hidden" name="kota" id="nama_kota">
-        </div>
-        <div class="fg">
-          <label>🏘️ Kecamatan</label>
-          <select name="id_kecamatan" id="kecamatan" required disabled>
-            <option value="" disabled selected>Pilih kota dulu…</option>
-          </select>
-          <input type="hidden" name="kecamatan" id="nama_kecamatan">
-        </div>
-      </div>
-
-      <div class="fg">
-        <label>📍 Detail Alamat</label>
-        <span class="warm-hint">Tuliskan alamat lengkap agar paketmu sampai dengan selamat 🏠</span>
-        <textarea name="alamat_detail" rows="2" required placeholder="Jalan, No. Rumah, RT/RW, Patokan…"></textarea>
-      </div>
-
-      <hr>
-
-      <div class="section-label">🖼️ Upload Foto & Video</div>
-
-      <div class="info-box">
-        <h4>📌 Panduan Upload</h4>
-        <p>Langsung unggah foto dan video dari galerimu — tidak perlu Google Drive! Sistem kami akan memprosesnya otomatis 🚀<br>Jika videomu lebih dari 30 MB, kami siap bantu kompres ya! 💪</p>
-      </div>
-
-      <div class="fg">
-        <label>📸 Foto Terbaik</label>
-        <span class="warm-hint">Upload foto paling spesial milikmu ya — kami akan membuatnya abadi! 💖</span>
-        <button type="button" id="btn_upload_foto" class="upload-btn">
-          <span>📷</span> Pilih Foto
-        </button>
-        <div class="upload-success" id="status_foto">✅ Foto berhasil diunggah!</div>
-        <img id="preview_foto" class="preview-img" src="" alt="Preview foto">
-        <input type="hidden" name="link_foto_raw" id="link_foto_raw">
-      </div>
-
-      <div class="fg">
-        <label>🎬 Video Kenangan</label>
-        <span class="warm-hint">Video singkat 15–30 detik sudah cukup untuk menyimpan momen terbaik 🥰</span>
-        <div class="warn-box">
-          ✨ <b>Tips:</b> Durasi video cukup <b>15–30 detik</b> agar upload cepat dan hasil tetap cantik! Ukuran maksimal <b>30 MB</b> ya 💕
-        </div>
-        <button type="button" id="btn_upload_video" class="upload-btn">
-          <span>🎬</span> Pilih Video
-        </button>
-        <!-- Hidden file input for size pre-check -->
-        <input type="file" id="video_precheck" accept="video/*" style="display:none">
-
-        <!-- COMPRESS BOX — muncul jika video > 30MB -->
-        <div class="compress-box" id="compress-box">
-          <h5>⚠️ Video terlalu besar dari 30 MB!</h5>
-          <p>Tenang, bisa dikompres dulu secara gratis di <b>xconvert.com</b> — ikuti panduan di bawah ya 💕</p>
-
-          <a href="https://xconvert.com/video-compressor" target="_blank" rel="noopener" class="compress-link primary" style="display:inline-flex;margin-bottom:14px;">
-            🎬 Buka xconvert.com (Gratis!)
-          </a>
-
-          <div class="xc-guide">
-
-            <!-- STEP 1 -->
-            <div class="xc-step">
-              <div class="xc-step-num">1</div>
-              <div class="xc-step-body">
-                <b>Upload video kamu</b>
-                <p>Klik tombol <span class="xc-badge">+ Add File</span> lalu pilih video dari galerimu</p>
-              </div>
-            </div>
-
-            <!-- STEP 2 -->
-            <div class="xc-step">
-              <div class="xc-step-num">2</div>
-              <div class="xc-step-body">
-                <b>Pilih <span class="xc-badge">Target file size (%)</span></b>
-                <p>Di bagian <b>FILE COMPRESSION</b>, tap kotak ini 👇</p>
-                <div class="xc-mock-options">
-                  <div class="xc-opt selected">Target file size<br><small>(%)</small></div>
-                  <div class="xc-opt">Specific file size</div>
-                  <div class="xc-opt">Constant Bitrate</div>
-                  <div class="xc-opt">Variable Bitrate</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- STEP 3 -->
-            <div class="xc-step">
-              <div class="xc-step-num">3</div>
-              <div class="xc-step-body">
-                <b>Geser slider ke angka <span id="pct-label" style="color:#c9a464">30%</span></b>
-                <p>Semakin kecil angkanya, semakin kecil ukuran videonya 👇</p>
-
-                <!-- Interactive slider illustration -->
-                <div class="xc-slider-wrap">
-                  <div class="xc-slider-labels">
-                    <span>1%<br><small>Sangat kecil</small></span>
-                    <span style="text-align:center">50%<br><small>Sedang</small></span>
-                    <span style="text-align:right">100%<br><small>Asli</small></span>
-                  </div>
-                  <div class="xc-slider-track">
-                    <div class="xc-slider-fill" id="slider-fill"></div>
-                    <input type="range" class="xc-range" id="xc-range" min="1" max="100" value="30">
-                  </div>
-                  <div class="xc-slider-result" id="slider-result">
-                    📁 Video 41 MB → sekitar <b id="result-mb">12 MB</b>
-                    <span id="result-ok" style="color:#4caf50;font-weight:700"> ✅ Aman diupload!</span>
-                  </div>
-                </div>
-
-                <div class="xc-tip" id="xc-tip">
-                  💡 <b>Rekomendasi:</b> Geser ke <b>30–35%</b> untuk hasil terbaik
-                </div>
-              </div>
-            </div>
-
-            <!-- STEP 4 -->
-            <div class="xc-step">
-              <div class="xc-step-num">4</div>
-              <div class="xc-step-body">
-                <b>Klik Compress lalu Download</b>
-                <p>Setelah selesai, klik <span class="xc-badge green">⬇ Download</span> dan simpan ke HP</p>
-              </div>
-            </div>
-
-            <!-- STEP 5 -->
-            <div class="xc-step">
-              <div class="xc-step-num">5</div>
-              <div class="xc-step-body">
-                <b>Upload ulang di sini ✅</b>
-                <p>Kembali ke form ini dan klik tombol <b>Pilih Video</b> lagi</p>
-              </div>
-            </div>
-
-          </div><!-- end xc-guide -->
+    <style>
+        @keyframes handBob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+    </style>
+    <div id="main-hand-ui">
+        <div id="status-bar">
+            <div class="dot" id="status-indicator"></div>
+            <span id="status-text">Menunggu Gestur...</span>
+            <button id="start-btn">Aktifkan Sensor</button>
         </div>
 
-        <div class="upload-success" id="status_video">✅ Video berhasil diunggah!</div>
-        <video id="preview_video" class="preview-vid" controls></video>
-        <input type="hidden" name="link_video_raw" id="link_video_raw">
-      </div>
-
-      <hr>
-
-      <div class="section-label">💌 Pesan Spesial</div>
-
-      <div class="fg">
-        <div class="hint">✍️ Tulis ucapan atau pesan yang akan disertakan — langsung dari hatimu (opsional) 🌷</div>
-        <textarea name="ucapan" rows="3" placeholder="Selamat ulang tahun, semoga selalu bahagia ✨"></textarea>
-      </div>
-
-      <button type="button" id="submitBtn" class="submit-btn" onclick="handleSubmit()">
-        <span>Kirim Pesanan ✦</span>
-      </button>
-      <p class="submit-note">Kami akan memprosesnya dengan penuh perhatian dan sepenuh hati 💝</p>
+        <div id="ui-layer">
+            <h1>HANA MEMORIA</h1>
+            <p id="tagline-hand" class="tagline">Mengabadikan cerita dalam setiap bingkai.</p>
+            <div id="gesture-hint">Klik tombol "Aktifkan Sensor" di atas...</div>
+        </div>
+        
+        <video id="webcam" autoplay playsinline muted style="display: none;"></video>
     </div>
 
-    <!-- SUCCESS STATE -->
-    <div id="success-message">
-      <div class="success-icon">🌸</div>
-      <h2>Pesananmu Sudah Kami Terima!</h2>
-      <p>Terima kasih telah mempercayai Hana Memoria 💖<br>Tim kami akan segera menghubungimu melalui WhatsApp.</p>
+    <div id="message-card">
+        <div id="card-text-wrapper">
+            <h3 id="card-title">Memuat...</h3>
+            <p id="card-desc">Tunggu sebentar...</p>
+        </div>
     </div>
-  </div>
-</div>
 
-<script>
-  // ── CONFIG ──
-  const CLOUD_NAME    = 'dg5sjaueq';
-  const UPLOAD_PRESET = 'hm_preset';
-  const WORKER_URL    = 'https://hm-backend.hanamemoria.workers.dev/';
+    <div id="mindar-overlay-container">
+        <div id="ar-scene-target-container"></div>
+    </div>
 
-  const HARGA = { 'Gantungan Kunci': 20000, 'Figura': 50000, 'Frame 12 Bulan': 85000 };
+    <div id="tutorial-overlay">
+        <div class="tutorial-logo-container">
+            <img src="https://pub-02d853231cff4efa92ee6754c646a898.r2.dev/Logo_HM.png" class="tutorial-logo" alt="Scanning Logo">
+            <div class="scan-line-logo"></div>
+        </div>
+        <div class="tutorial-text" style="text-align: center;">
+            <h3>Fokus ke Foto</h3>
+            <p>Arahkan kameramu tepat ke foto fisik,<br>saksikan momen indah bersemi kembali. 🌸</p>
+        </div>
+    </div>
 
-  // ── XCONVERT SLIDER LOGIC ──
-  const xcRange = document.getElementById('xc-range');
-  if (xcRange) {
-    window._videoFileSizeMB = 41; // default estimate, updated when file selected
+    <script id="vertexShader" type="x-shader/x-vertex">
+        attribute float aRandom;
+        attribute vec3 aScatterDir; 
+        
+        uniform float uSizeMultiplier;
+        uniform float uTime;
+        uniform float uScatter; 
 
-    function updateSliderDisplay(pct) {
-      const fill = document.getElementById('slider-fill');
-      const pctLabel = document.getElementById('pct-label');
-      const resultMb = document.getElementById('result-mb');
-      const resultOk = document.getElementById('result-ok');
-      const xcTip = document.getElementById('xc-tip');
-      const sliderResult = document.getElementById('slider-result');
+        void main() {
+            vec3 basePos = position;
+            vec3 scatteredPos = basePos + (aScatterDir * uScatter * 40.0);
+            
+            vec3 wobble = vec3(
+                sin(uTime * 1.5 + aRandom * 10.0) * 0.05,
+                cos(uTime * 1.4 + aRandom * 10.0) * 0.05,
+                sin(uTime * 1.3 + aRandom * 10.0) * 0.05
+            );
 
-      if (!fill || !sliderResult) return;
-
-      fill.style.width = pct + '%';
-      if (pctLabel) pctLabel.textContent = pct + '%';
-
-      const estimated = +(window._videoFileSizeMB * pct / 100).toFixed(1);
-      if (resultMb) resultMb.textContent = estimated + ' MB';
-      if (sliderResult) sliderResult.childNodes[0].textContent =
-        `📁 Video ${window._videoFileSizeMB} MB → sekitar `;
-
-      if (resultOk) {
-        if (estimated <= 30) {
-          resultOk.textContent = ' ✅ Aman diupload!';
-          resultOk.style.color = '#4caf50';
-        } else {
-          resultOk.textContent = ' ⚠️ Masih terlalu besar, geser lebih kecil';
-          resultOk.style.color = '#e67e22';
+            vec3 finalPos = scatteredPos + wobble;
+            vec4 mvPosition = modelViewMatrix * vec4(finalPos, 1.0);
+            
+            gl_PointSize = uSizeMultiplier * (12.0 / -mvPosition.z);
+            gl_Position = projectionMatrix * mvPosition;
         }
-      }
-
-      if (xcTip) {
-        if (pct <= 20) {
-          xcTip.innerHTML = '💡 <b>Kualitas akan berkurang.</b> Coba 25–35% jika hasilnya terlalu buram.';
-        } else if (pct <= 40) {
-          xcTip.innerHTML = '✨ <b>Rekomendasi zona terbaik!</b> Kualitas bagus & ukuran kecil.';
-        } else if (pct <= 60) {
-          xcTip.innerHTML = '💡 Ukuran masih agak besar. Coba geser lebih ke kiri ya.';
-        } else {
-          xcTip.innerHTML = '⚠️ Terlalu besar, geser ke kiri hingga hasil di bawah 30 MB.';
+    </script>
+    <script id="fragmentShader" type="x-shader/x-fragment">
+        uniform vec3 uColor;
+        uniform float uOpacity; 
+        
+        void main() {
+            vec2 coord = gl_PointCoord - vec2(0.5);
+            if(length(coord) > 0.5) discard;
+            if(uOpacity < 0.5) discard;
+            gl_FragColor = vec4(uColor, 1.0);
         }
-      }
-    }
+    </script>
 
-    window.updateSliderDisplay = updateSliderDisplay;
-    xcRange.addEventListener('input', () => updateSliderDisplay(xcRange.value));
-    updateSliderDisplay(xcRange.value);
-  }
+    <script>
+        const SUPABASE_URL = 'https://ujnuvlrdxzqtfppbhioo.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqbnV2bHJkeHpxdGZwcGJoaW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNjU2OTYsImV4cCI6MjA5MDY0MTY5Nn0.slqPc8v7QZXxHzvMkOlXWAAYebX-sqUIiKZvA9DJkl0';
+        const params = new URLSearchParams(window.location.search);
+        const idPelanggan = params.get('id') || 'default';
 
+        if (!params.get('id')) {
+            window.location.replace(window.location.pathname + '?id=demo');
+        }
 
-  const logoEl = document.getElementById('logoImg');
-  if (logoEl) {
-    logoEl.onerror = function() {
-      this.style.display = 'none';
-      const fallback = document.querySelector('.logo-text-fallback');
-      if (fallback) fallback.style.display = 'block';
-    };
-  }
+        let slides = [];
+        let slideIndex = 0;
+        let sceneARTemplate = ""; 
 
-  // ── HITUNG TOTAL ──
-  const jenisEl  = document.getElementById('jenis_input');
-  const jumlahEl = document.getElementById('jumlah_input');
-  const totalBox = document.getElementById('total_pembayaran_container');
-  const totalTxt = document.getElementById('text_total');
+        let scene, camera, renderer, clock;
+        let particles, particleMaterial;
+        let mpCameraInstance = null; 
+        
+        const particleCount = 12000; 
+        const patternData = {};
+        let isAnimating = false; 
+        let isProcessingAI = false;
 
-  function hitungTotal() {
-    const jenis  = jenisEl.value;
-    const jumlah = parseInt(jumlahEl.value) || 0;
-    if (jenis && HARGA[jenis] && jumlah > 0) {
-      totalTxt.textContent = 'Rp ' + (HARGA[jenis] * jumlah).toLocaleString('id-ID');
-      totalBox.style.display = 'block';
-    } else {
-      totalBox.style.display = 'none';
-    }
-  }
-  jenisEl.addEventListener('change', hitungTotal);
-  jumlahEl.addEventListener('input', hitungTotal);
+        const shapesPool = ['singularity', 'heart', 'tulip', 'frame'];
+        
+        const sequenceGestures = [
+            { req: 'fist', text: '✊ (Genggam)' },
+            { req: 'peace', text: '✌️ (Peace / 2 Jari)' },
+            { req: 'index', text: '☝️ (Satu Jari Telunjuk)' },
+            { req: 'open_palm', text: '🖐️ (Telapak Terbuka)' },
+            { req: 'thumb_up', text: '👍 (Jempol)' }
+        ];
 
-  // ── CLOUDINARY UPLOAD ──
-  const widgetFoto = cloudinary.createUploadWidget({
-    cloudName: CLOUD_NAME, uploadPreset: UPLOAD_PRESET,
-    sources: ['local','camera'], clientAllowedFormats: ['image','heic','heif'], multiple: false
-  }, (err, res) => {
-    if (!err && res?.event === 'success') {
-      const raw = res.info.secure_url;
-      const prev = raw.replace(/\.heic$/i,'.jpg').replace(/\.heif$/i,'.jpg');
-      document.getElementById('link_foto_raw').value = raw;
-      document.getElementById('btn_upload_foto').innerHTML = '<span>📷</span> Ganti Foto';
-      const s = document.getElementById('status_foto'); s.style.display = 'block';
-      const img = document.getElementById('preview_foto'); img.src = prev; img.style.display = 'block';
-    }
-  });
+        // --- PESAN DEFAULT UNIVERSAL ---
+        const UNIVERSAL_SLIDES = [
+            { t: "Hana Memoria ✨", b: "Setiap bingkai menyimpan cerita. Tunjukkan tanganmu untuk membuka lembaran memori ini." },
+            { t: "Melintasi Waktu 🕰️", b: "Waktu mungkin berlalu, namun kenangan indah akan selalu menemukan jalannya untuk kembali." },
+            { t: "Keajaiban Menanti 🌸", b: "Arahkan kamera ke foto fisikmu, dan saksikan momen tersebut hidup kembali di hadapanmu." }
+        ];
 
-  const widgetVideo = cloudinary.createUploadWidget({
-    cloudName: CLOUD_NAME, uploadPreset: UPLOAD_PRESET,
-    sources: ['local','camera'], clientAllowedFormats: ['video'],
-    maxVideoFileSize: 31457280, multiple: false
-  }, (err, res) => {
-    const compressBox = document.getElementById('compress-box');
-    // Detect file too large error from Cloudinary widget
-    if (err) {
-      if (err.status === 'too_large' || (err.message && err.message.toLowerCase().includes('large'))) {
-        compressBox.style.display = 'block';
-        compressBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-      return;
-    }
-    if (res?.event === 'queues-end' && res?.info?.files) {
-      // check if any file was rejected for size
-      const rejected = res.info.files.some(f => f.size > 31457280);
-      if (rejected) {
-        compressBox.style.display = 'block';
-        compressBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-      }
-    }
-    if (res?.event === 'success') {
-      compressBox.style.display = 'none';
-      document.getElementById('link_video_raw').value = res.info.secure_url;
-      document.getElementById('btn_upload_video').innerHTML = '<span>🎬</span> Ganti Video';
-      const s = document.getElementById('status_video'); s.style.display = 'block';
-      const vid = document.getElementById('preview_video'); vid.src = res.info.secure_url; vid.style.display = 'block';
-    }
-  });
+        const statusText = document.getElementById('status-text');
+        const statusIndicator = document.getElementById('status-indicator');
+        const hintEl = document.getElementById('gesture-hint');
+        const startBtn = document.getElementById('start-btn');
+        const taglineHandEl = document.getElementById('tagline-hand');
+        const isMobile = () => window.innerWidth < window.innerHeight;
 
-  document.getElementById('btn_upload_foto').addEventListener('click', () => widgetFoto.open());
+        const DEMO_DATA = {
+            nama_pelanggan: "Demo Hana Memoria",
+            link_video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+            link_target: "https://pub-02d853231cff4efa92ee6754c646a898.r2.dev/targets.mind",
+            video_posisi: "0 0 0",
+            video_skala: "1 1.5 1",
+            video_rotasi: "0 0 0"
+        };
 
-  // VIDEO SIZE PRE-CHECK: intercept click, check file size before opening Cloudinary widget
-  const _origVideoBtn = document.getElementById('btn_upload_video');
-  const _videoPrecheck = document.getElementById('video_precheck');
+        window.onload = async () => {
+            if (idPelanggan === 'demo') {
+                const data = DEMO_DATA;
+                initMascotData(data);
+                slides = UNIVERSAL_SLIDES; // Gunakan slide universal untuk demo
 
-  _origVideoBtn.addEventListener('click', () => {
-    document.getElementById('compress-box').style.display = 'none';
-    // Use hidden file input to pre-check size
-    _videoPrecheck.value = '';
-    _videoPrecheck.click();
-  });
+                const p = (data.video_posisi || "0 0 0").split(' ');
+                const s = (data.video_skala || "1 1.5 1").split(' ');
+                const rotZ = parseFloat((data.video_rotasi || "0 0 0").split(' ')[2]);
 
-  _videoPrecheck.addEventListener('change', () => {
-    const file = _videoPrecheck.files[0];
-    if (!file) return;
-    // Update slider with real file size
-    window._videoFileSizeMB = +(file.size / (1024 * 1024)).toFixed(1);
-    if (window.updateSliderDisplay && document.getElementById('xc-range')) {
-      window.updateSliderDisplay(document.getElementById('xc-range').value);
-    }
-    const MAX = 30 * 1024 * 1024; // 30 MB
-    if (file.size > MAX) {
-      const compressBox = document.getElementById('compress-box');
-      compressBox.style.display = 'block';
-      compressBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    } else {
-      // File OK — open Cloudinary widget
-      widgetVideo.open();
-    }
-  });
+                sceneARTemplate = `
+                    <a-scene id="ar-scene" mindar-image="imageTargetSrc: ${data.link_target}; autoStart: false; uiScanning: no;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" embedded>
+                        <a-assets><video id="webVideo" src="${data.link_video}" loop="true" crossorigin="anonymous" playsinline webkit-playsinline></video></a-assets>
+                        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+                        <a-entity mindar-image-target="targetIndex: 0" id="target-ar">
+                            <a-video id="vDisplay" src="#webVideo" position="${p[0]} ${p[1]} 0" width="${s[0]}" height="${s[1]}" rotation="0 0 ${rotZ}"></a-video>
+                        </a-entity>
+                    </a-scene>
+                `;
+                document.getElementById('loading').classList.add('fade-out');
+                document.getElementById('main-hand-ui').style.display = 'block';
+                initThree();
+                createParticles();
+                animate();
+                updateCardUI();
+                document.getElementById('message-card').classList.add('show');
+            } else {
+                try {
+                    const res = await fetch(`${SUPABASE_URL}/rest/v1/Pesanan?id_pesanan=eq.${idPelanggan}&select=link_target,link_video,slides,video_posisi,video_skala,video_rotasi,nama_pelanggan,jenis_pesanan,jumlah`, {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                    });
+                    if (!res.ok) throw new Error("Gagal akses database");
+                    const data = (await res.json())[0];
+                    if(data) {
+                        initMascotData(data);
+                        let rawSlides = data.slides;
+                        try { if (typeof rawSlides === 'string') rawSlides = JSON.parse(rawSlides); } catch(e) {}
+                        
+                        // Cek jika data khusus tersedia, jika tidak pakai UNIVERSAL
+                        if (Array.isArray(rawSlides) && rawSlides.length > 0 && rawSlides[0].t) {
+                            slides = rawSlides;
+                        } else {
+                            slides = UNIVERSAL_SLIDES;
+                        }
 
-  // Listen for Cloudinary widget upload-added event to catch oversized files early
-  widgetVideo.on && widgetVideo.on('upload-added', (err, res) => {
-    if (res?.info?.file?.size > 31457280) {
-      const compressBox = document.getElementById('compress-box');
-      compressBox.style.display = 'block';
-      compressBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  });
+                        const p = (data.video_posisi || "0 0 0").split(' ');
+                        const s = (data.video_skala || "1 1.5 1").split(' ');
+                        const rotZ = parseFloat((data.video_rotasi || "0 0 0").split(' ')[2]);
 
-  // ── WILAYAH API ──
-  const API = 'https://www.emsifa.com/api-wilayah-indonesia/api';
-  const provEl = document.getElementById('provinsi');
-  const kotaEl = document.getElementById('kota');
-  const kecEl  = document.getElementById('kecamatan');
+                        sceneARTemplate = `
+                            <a-scene id="ar-scene" mindar-image="imageTargetSrc: ${data.link_target}; autoStart: false; uiScanning: no;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" embedded>
+                                <a-assets><video id="webVideo" src="${data.link_video}" loop="true" crossorigin="anonymous" playsinline webkit-playsinline></video></a-assets>
+                                <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+                                <a-entity mindar-image-target="targetIndex: 0" id="target-ar">
+                                    <a-video id="vDisplay" src="#webVideo" position="${p[0]} ${p[1]} 0" width="${s[0]}" height="${s[1]}" rotation="0 0 ${rotZ}"></a-video>
+                                </a-entity>
+                            </a-scene>
+                        `;
+                        document.getElementById('loading').classList.add('fade-out');
+                        document.getElementById('main-hand-ui').style.display = 'block';
+                        initThree();
+                        createParticles();
+                        animate();
+                        updateCardUI();
+                        document.getElementById('message-card').classList.add('show');
+                    } else {
+                        document.getElementById('loading-sub').innerText = "Data tidak ditemukan. Pastikan URL valid.";
+                    }
+                } catch(e) {
+                    document.getElementById('loading-sub').innerText = "Koneksi terputus. Muat ulang halaman.";
+                }
+            }
 
-  fetch(`${API}/provinces.json`).then(r=>r.json()).then(data => {
-    provEl.innerHTML = '<option value="" disabled selected>Pilih Provinsi…</option>';
-    data.forEach(p => {
-      const o = document.createElement('option');
-      o.value = p.id; o.text = p.name; provEl.appendChild(o);
-    });
-  });
+            startBtn.onclick = () => {
+                startBtn.style.display = 'none';
+                document.getElementById('hand-guide-overlay').style.display = 'flex';
+                initMediaPipe();
+            };
+        };
 
-  provEl.addEventListener('change', e => {
-    document.getElementById('nama_provinsi').value = provEl.options[provEl.selectedIndex].text;
-    kotaEl.innerHTML = '<option disabled selected>Memuat…</option>'; kotaEl.disabled = true;
-    kecEl.innerHTML  = '<option disabled selected>Pilih kota dulu…</option>'; kecEl.disabled = true;
-    fetch(`${API}/regencies/${e.target.value}.json`).then(r=>r.json()).then(data => {
-      kotaEl.innerHTML = '<option value="" disabled selected>Pilih Kota/Kabupaten…</option>';
-      data.forEach(k => { const o=document.createElement('option'); o.value=k.id; o.text=k.name; kotaEl.appendChild(o); });
-      kotaEl.disabled = false;
-    });
-  });
+        function updateStatus(text, isActive, isError=false) {
+            statusText.innerText = text;
+            statusIndicator.className = "dot" + (isActive ? " active" : "") + (isError ? " error" : "");
+        }
 
-  kotaEl.addEventListener('change', e => {
-    document.getElementById('nama_kota').value = kotaEl.options[kotaEl.selectedIndex].text;
-    kecEl.innerHTML = '<option disabled selected>Memuat…</option>'; kecEl.disabled = true;
-    fetch(`${API}/districts/${e.target.value}.json`).then(r=>r.json()).then(data => {
-      kecEl.innerHTML = '<option value="" disabled selected>Pilih Kecamatan…</option>';
-      data.forEach(k => { const o=document.createElement('option'); o.value=k.id; o.text=k.name; kecEl.appendChild(o); });
-      kecEl.disabled = false;
-    });
-  });
+        function createParticles() {
+            patternData['scatter'] = getScatterPositions();
+            patternData['singularity'] = getSingularityPositions();
+            patternData['heart'] = getHeartPositions();
+            patternData['tulip'] = getTulipPositions();
+            patternData['frame'] = getFramePositions();
+            patternData['openEnvelope'] = getOpenEnvelopePositions();
 
-  kecEl.addEventListener('change', () => {
-    document.getElementById('nama_kecamatan').value = kecEl.options[kecEl.selectedIndex].text;
-  });
+            clock = new THREE.Clock();
+            const geometry = new THREE.BufferGeometry();
+            const initialPositions = patternData['scatter'];
+            
+            const randoms = new Float32Array(particleCount);
+            const scatterDirs = new Float32Array(particleCount * 3);
+            for(let i=0; i<particleCount; i++) {
+                randoms[i] = Math.random();
+                const theta = Math.random() * Math.PI * 2.0;
+                const phi = Math.acos(2.0 * Math.random() - 1.0);
+                const speed = 0.3 + Math.random() * 0.7;
+                scatterDirs[i*3] = Math.sin(phi) * Math.cos(theta) * speed;
+                scatterDirs[i*3+1] = Math.sin(phi) * Math.sin(theta) * speed;
+                scatterDirs[i*3+2] = Math.cos(phi) * speed;
+            }
+            geometry.setAttribute('position', new THREE.BufferAttribute(initialPositions, 3));
+            geometry.setAttribute('aRandom', new THREE.BufferAttribute(randoms, 1));
+            geometry.setAttribute('aScatterDir', new THREE.BufferAttribute(scatterDirs, 3));
 
-  // ── SUBMIT ──
-  function handleSubmit() {
-    const nama   = document.getElementById('nama').value.trim();
-    let   wa     = document.getElementById('wa_input').value.replace(/\D/g,'');
-    const jenis  = jenisEl.value;
-    const jumlah = jumlahEl.value;
-    const foto   = document.getElementById('link_foto_raw').value;
-    const video  = document.getElementById('link_video_raw').value;
-    const prov   = provEl.value;
-    const kota   = kotaEl.value;
-    const kec    = kecEl.value;
-    const alamat = document.querySelector('[name=alamat_detail]').value.trim();
+            particleMaterial = new THREE.ShaderMaterial({
+                vertexShader: document.getElementById('vertexShader').textContent,
+                fragmentShader: document.getElementById('fragmentShader').textContent,
+                uniforms: {
+                    uTime: { value: 0 },
+                    uScatter: { value: 0.0 },
+                    uOpacity: { value: 1.0 },
+                    uColor: { value: new THREE.Color('#e0bfb8') },
+                    uSizeMultiplier: { value: isMobile() ? 4.0 : 2.0 }
+                },
+                transparent: false,
+                blending: THREE.NoBlending,
+                depthWrite: true,
+                depthTest: true
+            });
+            particles = new THREE.Points(geometry, particleMaterial);
+            scene.add(particles);
+        }
 
-    if (!nama)   { alert('⚠️ Nama lengkap wajib diisi!'); return; }
-    if (!wa)     { alert('⚠️ Nomor WhatsApp wajib diisi!'); return; }
-    if (!jenis)  { alert('⚠️ Pilih jenis produk!'); return; }
-    if (!foto)   { alert('⚠️ Kamu belum upload foto!'); return; }
-    if (!video)  { alert('⚠️ Kamu belum upload video!'); return; }
-    if (!prov)   { alert('⚠️ Pilih provinsi!'); return; }
-    if (!kota)   { alert('⚠️ Pilih kota!'); return; }
-    if (!kec)    { alert('⚠️ Pilih kecamatan!'); return; }
-    if (!alamat) { alert('⚠️ Isi detail alamat!'); return; }
+        function transitionPattern(shapeName, callback) {
+            if (isAnimating || !particles) return;
+            isAnimating = true;
 
-    if (wa.startsWith('0')) wa = '62' + wa.slice(1);
-    else if (!wa.startsWith('62')) { alert('❌ Format WhatsApp salah. Gunakan awalan 08 atau 628.'); return; }
+            if (shapeName === 'openEnvelope') {
+                taglineHandEl.innerText = 'Surat kenangan terbuka... ✨';
+            } else {
+                taglineHandEl.innerText = 'Mengabadikan cerita dalam setiap bingkai.';
+            }
 
-    const btn = document.getElementById('submitBtn');
-    btn.disabled = true;
-    btn.querySelector('span').textContent = 'Mengirim… ⏳';
+            gsap.to(particleMaterial.uniforms.uScatter, { value: 1.0, duration: 1.0, ease: "power2.in" });
+            gsap.to(particleMaterial.uniforms.uOpacity, { value: 0.0, duration: 1.0, ease: "power2.in", onComplete: () => {
+                const posAttr = particles.geometry.attributes.position;
+                const newPositions = patternData[shapeName];
+                for(let i = 0; i < particleCount * 3; i++) posAttr.array[i] = newPositions[i];
+                posAttr.needsUpdate = true;
+                particles.rotation.x = -0.2;
 
-    const payload = {
-      nama, whatsapp: wa, jenis, jumlah,
-      id_provinsi:   provEl.value,
-      provinsi:      document.getElementById('nama_provinsi').value,
-      id_kota:       kotaEl.value,
-      kota:          document.getElementById('nama_kota').value,
-      id_kecamatan:  kecEl.value,
-      kecamatan:     document.getElementById('nama_kecamatan').value,
-      alamat_detail: alamat,
-      ucapan:        document.querySelector('[name=ucapan]').value,
-      link_foto_raw: foto,
-      link_video_raw: video
-    };
+                gsap.to(particleMaterial.uniforms.uOpacity, { value: 1.0, duration: 1.2, ease: "power2.out" });
+                gsap.to(particleMaterial.uniforms.uScatter, { value: 0.0, duration: 1.2, ease: "power2.out", onComplete: () => {
+                    isAnimating = false;
+                    if(callback) callback();
+                }});
+            }});
+        }
 
-    fetch(WORKER_URL, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-      headers: { 'Content-Type': 'application/json' }
-    })
-    .then(r => r.json())
-    .then(data => {
-      if (data.success) {
-        document.getElementById('form-content').style.display = 'none';
-        document.getElementById('success-message').style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        alert('Gagal memproses: ' + data.message);
-        btn.disabled = false;
-        btn.querySelector('span').textContent = 'Kirim Pesanan ✦';
-      }
-    })
-    .catch(() => {
-      alert('Terjadi kesalahan jaringan. Pastikan internetmu stabil.');
-      btn.disabled = false;
-      btn.querySelector('span').textContent = 'Kirim Pesanan ✦';
-    });
-  }
-</script>
+        function updateCardUI() {
+            if(slides.length > 0 && slideIndex < slides.length) {
+                document.getElementById('card-title').innerText = slides[slideIndex].t || "Hana Memoria";
+                document.getElementById('card-desc').innerText = slides[slideIndex].b || "...";
+                
+                const currentGestureObj = sequenceGestures[slideIndex % sequenceGestures.length];
+                
+                // Panduan Gestur sekarang HANYA ada di pojok kiri bawah
+                if (mpCameraInstance) {
+                    hintEl.innerHTML = `Langkah ${slideIndex + 1}/${slides.length}. Tunjukkan: <span>${currentGestureObj.text}</span>`;
+                }
+            }
+        }
 
+        function advanceMessageFlow() {
+            if (isAnimating) return;
 
+            const card = document.getElementById('message-card');
+            const wrapper = document.getElementById('card-text-wrapper');
+
+            if (slideIndex < slides.length - 1) {
+                wrapper.style.opacity = 0;
+                const nextShape = shapesPool[(slideIndex + 1) % shapesPool.length];
+                
+                transitionPattern(nextShape, () => {
+                    slideIndex++;
+                    updateCardUI();
+                    wrapper.style.opacity = 1;
+                });
+            } else {
+                wrapper.style.opacity = 0;
+                document.getElementById('card-title').innerText = "Membuka Pemindai...";
+                document.getElementById('card-desc').innerText = "Bersiaplah untuk sesuatu yang menakjubkan.";
+                wrapper.style.opacity = 1;
+                
+                transitionPattern('openEnvelope', () => {
+                    card.classList.remove('show');
+                    
+                    if (mpCameraInstance) {
+                        try { mpCameraInstance.stop(); } catch(e){}
+                    }
+                    document.getElementById('main-hand-ui').style.display = 'none';
+                    startMindAR();
+                });
+            }
+        }
+
+        function startMindAR() {
+            const container = document.getElementById('mindar-overlay-container');
+            container.classList.add('active');
+            document.getElementById('ar-scene-target-container').innerHTML = sceneARTemplate;
+            document.getElementById('tutorial-overlay').style.display = 'flex';
+
+            setTimeout(() => {
+                const sc = document.getElementById('ar-scene');
+                if (sc && sc.systems && sc.systems['mindar-image-system']) {
+                    sc.systems['mindar-image-system'].start();
+                }
+                
+                const targetAR = document.getElementById('target-ar');
+                const vid = document.getElementById('webVideo');
+                if (targetAR && vid) {
+                    targetAR.addEventListener("targetFound", () => {
+                        document.getElementById('tutorial-overlay').style.display = 'none';
+                        vid.play();
+                    });
+                    targetAR.addEventListener("targetLost", () => {
+                        document.getElementById('tutorial-overlay').style.display = 'flex';
+                        vid.pause();
+                    });
+                }
+            }, 500);
+        }
+
+        function initMediaPipe() {
+            updateStatus("Mengunduh AI (~10MB)...", false);
+            const videoElement = document.getElementById('webcam');
+            const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+            
+            hands.setOptions({ maxNumHands: 1, modelComplexity: 0, minDetectionConfidence: 0.65, minTrackingConfidence: 0.65 });
+            hands.onResults(onHandResults);
+            
+            hands.initialize().then(() => {
+                updateStatus("Meminta Akses Kamera...", false);
+                let lastProcessTime = 0;
+                mpCameraInstance = new Camera(videoElement, {
+                    onFrame: async () => {
+                        const now = Date.now();
+                        if (!isAnimating && !isProcessingAI && now - lastProcessTime >= 150) {
+                            isProcessingAI = true;
+                            await hands.send({image: videoElement});
+                            isProcessingAI = false;
+                            lastProcessTime = now;
+                        }
+                    }, width: 160, height: 120
+                });
+                mpCameraInstance.start().then(() => {
+                    updateStatus("Sensor Tangan Aktif", true);
+                    updateCardUI();
+                }).catch((err) => {
+                    updateStatus("Kamera Ditolak", false, true);
+                    hintEl.innerHTML = "Harap izinkan akses kamera di browser.";
+                    startBtn.style.display = 'block';
+                    startBtn.innerText = 'Coba Lagi';
+                });
+            }).catch((err) => {
+                updateStatus("Gagal Memuat AI", false, true);
+            });
+        }
+
+        let consecutiveGestures = 0;
+        function onHandResults(results) {
+            if (isAnimating) return;
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const guideOverlay = document.getElementById('hand-guide-overlay');
+                if (guideOverlay && guideOverlay.style.display !== 'none') guideOverlay.style.display = 'none';
+                const landmarks = results.multiHandLandmarks[0];
+                const getD = (p1, p2) => Math.hypot(landmarks[p1].x - landmarks[p2].x, landmarks[p1].y - landmarks[p2].y);
+
+                const isIndexOpen = getD(8, 0) > getD(5, 0) * 1.2;
+                const isMiddleOpen = getD(12, 0) > getD(9, 0) * 1.2;
+                const isRingOpen = getD(16, 0) > getD(13, 0) * 1.2;
+                const isPinkyOpen = getD(20, 0) > getD(17, 0) * 1.2;
+                const isThumbOpen = getD(4, 5) > getD(3, 5) * 1.1;
+
+                const pinchDist = getD(4, 8); 
+
+                const isFist = !isIndexOpen && !isMiddleOpen && !isRingOpen && !isPinkyOpen;
+                const isPeaceSign = isIndexOpen && isMiddleOpen && !isRingOpen && !isPinkyOpen;
+                const isIndexPointing = isIndexOpen && !isMiddleOpen && !isRingOpen && !isPinkyOpen;
+                const isOpenPalm = isIndexOpen && isMiddleOpen && isRingOpen && isPinkyOpen && isThumbOpen;
+                const isThumbUp = isThumbOpen && !isIndexOpen && !isMiddleOpen && !isRingOpen && !isPinkyOpen;
+                const isPinch = pinchDist < 0.10 && !isFist;
+
+                const currentGestureNeeded = sequenceGestures[slideIndex % sequenceGestures.length].req;
+                let matchTarget = false;
+
+                if (currentGestureNeeded === 'fist' && isFist) matchTarget = true;
+                else if (currentGestureNeeded === 'peace' && isPeaceSign) matchTarget = true;
+                else if (currentGestureNeeded === 'index' && isIndexPointing) matchTarget = true;
+                else if (currentGestureNeeded === 'open_palm' && isOpenPalm) matchTarget = true;
+                else if (currentGestureNeeded === 'thumb_up' && isThumbUp) matchTarget = true;
+                else if (currentGestureNeeded === 'pinch' && isPinch) matchTarget = true;
+
+                if (matchTarget) {
+                    consecutiveGestures++;
+                    if (consecutiveGestures >= 3) {
+                        consecutiveGestures = 0;
+                        advanceMessageFlow();
+                    }
+                } else {
+                    consecutiveGestures = 0;
+                }
+            } else {
+                consecutiveGestures = 0;
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if(particles) {
+                const elapsedTime = clock.getElapsedTime();
+                particleMaterial.uniforms.uTime.value = elapsedTime;
+                particles.rotation.y = elapsedTime * 0.4;
+                particles.rotation.x = THREE.MathUtils.lerp(particles.rotation.x, -0.2, 0.05);
+                renderer.render(scene, camera);
+            }
+        }
+
+        // ============ FORMULA MATEMATIKA BENTUK PARTIKEL ============
+        function randomTriangle(arr, startIdx, count, a, b, c, zNoise=0.0) {
+            let idx = startIdx * 3;
+            for(let i=0; i<count; i++) {
+                let r1 = Math.random(), r2 = Math.random();
+                if(r1 + r2 > 1.0) { r1 = 1.0 - r1; r2 = 1.0 - r2; }
+                arr[idx] = a.x + r1*(b.x-a.x) + r2*(c.x-a.x) + (Math.random()-0.5)*zNoise;
+                arr[idx+1] = a.y + r1*(b.y-a.y) + r2*(c.y-a.y) + (Math.random()-0.5)*zNoise;
+                arr[idx+2] = a.z + r1*(b.z-a.z) + r2*(c.z-a.z) + (Math.random()-0.5)*0.02;
+            }
+        }
+        function getScatterPositions() {
+            const arr = new Float32Array(particleCount * 3);
+            for(let i = 0; i < particleCount * 3; i++) arr[i] = (Math.random() - 0.5) * 45;
+            return arr;
+        }
+        function getSingularityPositions() {
+            const arr = new Float32Array(particleCount * 3);
+            for(let i = 0; i < particleCount * 3; i+=3) {
+                const u = Math.random(), v = Math.random();
+                const theta = u * 2.0 * Math.PI;
+                const phi = Math.acos(2.0 * v - 1.0);
+                const r = Math.cbrt(Math.random()) * 2.0;
+                arr[i] = r * Math.sin(phi) * Math.cos(theta);
+                arr[i+1] = r * Math.sin(phi) * Math.sin(theta);
+                arr[i+2] = r * Math.cos(phi);
+            }
+            return arr;
+        }
+        function getHeartPositions() {
+            const arr = new Float32Array(particleCount * 3);
+            const scale = 4.5;
+            for(let i = 0; i < particleCount * 3; i+=3) {
+                let x, y;
+                while(true) {
+                    x = (Math.random() - 0.5) * 3.0;
+                    y = (Math.random() - 0.5) * 3.0;
+                    let a = x*x + y*y - 1.0;
+                    if (a*a*a - x*x*y*y*y <= 0.0) break;
+                }
+                arr[i] = x * scale;
+                arr[i+1] = y * scale + 1.0;
+                arr[i+2] = (Math.random() - 0.5) * 0.8;
+            }
+            return arr;
+        }
+        function getTulipPositions() {
+            const arr = new Float32Array(particleCount * 3);
+            let idx = 0;
+            const stemCount = Math.floor(particleCount * 0.25);
+            const flowerCount = particleCount - stemCount;
+            for(let i=0; i<stemCount; i++) {
+                const t = Math.random();
+                arr[idx++] = Math.sin(t * 4.0) * 0.3 + (Math.random()-0.5)*0.1;
+                arr[idx++] = t * 6.0 - 5.0;
+                arr[idx++] = (Math.random()-0.5)*0.1;
+            }
+            const flowerBaseY = 1.0;
+            for(let i=0; i<flowerCount; i++) {
+                const u = Math.random(), v = Math.random();
+                const petalIndex = Math.floor(Math.random() * 6), angleBase = (petalIndex * Math.PI * 2) / 6.0, petalWidthAngle = Math.PI / 2.5;
+                const theta = angleBase + (v - 0.5) * petalWidthAngle;
+                let r = Math.sin(Math.acos(1 - u * 1.4)) * 2.8;
+                if (isNaN(r)) r = 2.0;
+                if(u > 0.6) r -= (u - 0.6) * 2.0;
+                const tipPinch = Math.sin(v * Math.PI), heightVariation = u * 5.0 + tipPinch * 1.5;
+                arr[idx++] = r * Math.cos(theta) + (Math.random()-0.5)*0.1;
+                arr[idx++] = flowerBaseY + heightVariation + (Math.random()-0.5)*0.1;
+                arr[idx++] = r * Math.sin(theta) + (Math.random()-0.5)*0.1;
+            }
+            return arr;
+        }
+        function getFramePositions() {
+            const arr = new Float32Array(particleCount * 3);
+            const wOuter = 3.5, hOuter = 5.5, thick = 0.8;
+            for(let i = 0; i < particleCount * 3; i+=3) {
+                let x, y, z;
+                if (Math.random() < 0.70) {
+                    const edge = Math.random();
+                    if (edge < 0.25) { x = (Math.random()-0.5)*wOuter*2; y = hOuter-Math.random()*thick; }
+                    else if (edge < 0.5) { x = (Math.random()-0.5)*wOuter*2; y = -hOuter+Math.random()*thick; }
+                    else if (edge < 0.75) { x = -wOuter+Math.random()*thick; y = (Math.random()-0.5)*hOuter*2; }
+                    else { x = wOuter-Math.random()*thick; y = (Math.random()-0.5)*hOuter*2; }
+                } else {
+                    x = (Math.random()-0.5) * (wOuter*2-thick*2);
+                    y = (Math.random()-0.5) * (hOuter*2-thick*2);
+                }
+                z = (Math.random() - 0.5) * 0.5;
+                arr[i] = x; arr[i+1] = y + 0.5; arr[i+2] = z;
+            }
+            return arr;
+        }
+        function getOpenEnvelopePositions() {
+            const arr = new Float32Array(particleCount * 3);
+            const w = 7.5, h = 4.5;
+            let cBack = Math.floor(particleCount * 0.3);
+            let cPaper = Math.floor(particleCount * 0.25);
+            let cSide = Math.floor(particleCount * 0.15);
+            let cTop = particleCount - cBack - cPaper - (cSide * 2);
+            let TL = {x: -w/2, y: h/2, z: 0}, TR = {x: w/2, y: h/2, z: 0};
+            let BL = {x: -w/2, y: -h/2, z: 0}, BR = {x: w/2, y: -h/2, z: 0};
+            let M = {x: 0, y: 0, z: 0.1};
+            randomTriangle(arr, 0, Math.floor(cBack/2), TL, TR, BL, 0.0);
+            randomTriangle(arr, Math.floor(cBack/2), cBack - Math.floor(cBack/2), TR, BR, BL, 0.0);
+            let pTL = {x: -w/2 + 0.5, y: h/2 + 2.0, z: 0.05};
+            let pTR = {x: w/2 - 0.5, y: h/2 + 2.0, z: 0.05};
+            let pBL = {x: -w/2 + 0.5, y: -h/2 + 0.5, z: 0.05};
+            let pBR = {x: w/2 - 0.5, y: -h/2 + 0.5, z: 0.05};
+            randomTriangle(arr, cBack, Math.floor(cPaper/2), pTL, pTR, pBL, 0.01);
+            randomTriangle(arr, cBack+Math.floor(cPaper/2), cPaper - Math.floor(cPaper/2), pTR, pBR, pBL, 0.01);
+            randomTriangle(arr, cBack+cPaper, cSide, TL, BL, M, 0.03);
+            randomTriangle(arr, cBack+cPaper+cSide, cSide, TR, BR, M, 0.03);
+            randomTriangle(arr, cBack+cPaper+cSide*2, cSide, BL, BR, {x:0, y:-0.5, z:0.15}, 0.03);
+            randomTriangle(arr, cBack+cPaper+cSide*3, cTop, TL, TR, {x:0, y:h/2+2.5, z:0.2}, 0.03);
+            for(let i=0; i<particleCount*3; i+=3) { arr[i+1] -= 1.0; }
+            return arr;
+        }
+
+        function initThree() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = isMobile() ? 20 : 15;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            document.body.appendChild(renderer.domElement);
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        
+
+        function onWindowResize() {
+            if(camera && renderer) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.position.z = isMobile() ? 20 : 15;
+                if(particleMaterial) particleMaterial.uniforms.uSizeMultiplier.value = isMobile() ? 4.0 : 2.0;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        }
+    </script>
 </body>
 </html>
