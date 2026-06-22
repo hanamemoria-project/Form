@@ -191,6 +191,60 @@
     select:disabled { opacity: 0.5; cursor: not-allowed; }
     textarea { resize: vertical; min-height: 80px; }
 
+    /* ── ORIENTASI RADIO ── */
+    .orientasi-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .orientasi-option {
+      position: relative;
+    }
+    .orientasi-option input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .orientasi-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      background: var(--cream);
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+    .orientasi-label:hover {
+      border-color: var(--gold-light);
+      background: #fdf5e8;
+    }
+    .orientasi-option input[type="radio"]:checked + .orientasi-label {
+      border-color: var(--gold);
+      background: #fdf5e8;
+      box-shadow: 0 0 0 3px #b8935a18;
+    }
+    .orientasi-icon {
+      font-size: 24px;
+      line-height: 1;
+    }
+    .orientasi-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--brown-dark);
+    }
+    .orientasi-desc {
+      font-size: 11px;
+      color: var(--ink-muted);
+      line-height: 1.4;
+    }
+
     /* ── TOTAL BOX ── */
     .total-box {
       display: none;
@@ -339,11 +393,6 @@
       line-height: 1.6;
       margin-bottom: 12px;
     }
-    .compress-links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
     .compress-link {
       display: inline-flex;
       align-items: center;
@@ -361,168 +410,72 @@
       color: #fff;
     }
     .compress-link.primary:hover { transform: translateY(-1px); box-shadow: 0 4px 14px #b8935a40; }
-    .compress-link.secondary {
-      background: #fff;
-      color: var(--brown-dark);
-      border-color: var(--border);
-    }
-    .compress-link.secondary:hover { border-color: var(--gold); color: var(--gold); }
-    .compress-steps {
-      font-size: 12px;
-      color: #7a5a1e;
-      margin-top: 10px;
-      padding: 10px 12px;
-      background: #fff9f0;
-      border-radius: 8px;
-      border-left: 3px solid var(--gold-light);
-      line-height: 1.8;
-    }
 
     /* ── XCONVERT GUIDE ── */
-    .xc-guide {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      margin-top: 4px;
-    }
-    .xc-step {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-    }
+    .xc-guide { display: flex; flex-direction: column; gap: 14px; margin-top: 4px; }
+    .xc-step { display: flex; gap: 12px; align-items: flex-start; }
     .xc-step-num {
-      min-width: 28px;
-      height: 28px;
-      border-radius: 50%;
+      min-width: 28px; height: 28px; border-radius: 50%;
       background: linear-gradient(135deg, #c9a464, #b8935a);
-      color: #fff;
-      font-size: 13px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-top: 2px;
-      flex-shrink: 0;
+      color: #fff; font-size: 13px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 2px; flex-shrink: 0;
     }
-    .xc-step-body {
-      flex: 1;
-      font-size: 13px;
-      color: #5a3a0e;
-      line-height: 1.5;
-    }
+    .xc-step-body { flex: 1; font-size: 13px; color: #5a3a0e; line-height: 1.5; }
     .xc-step-body b { color: #3a2008; }
     .xc-step-body p { margin: 3px 0 6px; color: #7a5a2e; font-size: 12.5px; }
     .xc-badge {
-      display: inline-block;
-      background: #e8f0fe;
-      color: #1a56db;
-      border: 1.5px solid #c3d4f8;
-      border-radius: 6px;
-      padding: 1px 7px;
-      font-size: 11.5px;
-      font-weight: 600;
+      display: inline-block; background: #e8f0fe; color: #1a56db;
+      border: 1.5px solid #c3d4f8; border-radius: 6px;
+      padding: 1px 7px; font-size: 11.5px; font-weight: 600;
     }
-    .xc-badge.green {
-      background: #e6f4ea;
-      color: #1e7e34;
-      border-color: #b7dfc0;
-    }
+    .xc-badge.green { background: #e6f4ea; color: #1e7e34; border-color: #b7dfc0; }
     .xc-mock-options {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-      margin: 8px 0;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 8px 0;
     }
     .xc-opt {
-      border: 1.5px solid #d0d5dd;
-      border-radius: 8px;
-      padding: 8px 10px;
-      font-size: 12px;
-      color: #444;
-      text-align: center;
-      background: #fff;
-      line-height: 1.3;
+      border: 1.5px solid #d0d5dd; border-radius: 8px; padding: 8px 10px;
+      font-size: 12px; color: #444; text-align: center; background: #fff; line-height: 1.3;
     }
     .xc-opt small { font-size: 10px; color: #888; }
     .xc-opt.selected {
-      border-color: #4f63d2;
-      color: #4f63d2;
-      font-weight: 700;
-      background: #eef1fd;
-      box-shadow: 0 0 0 2px #4f63d240;
+      border-color: #4f63d2; color: #4f63d2; font-weight: 700;
+      background: #eef1fd; box-shadow: 0 0 0 2px #4f63d240;
     }
-    /* Slider */
     .xc-slider-wrap {
-      background: #fff;
-      border: 1.5px solid #e0c98a;
-      border-radius: 12px;
-      padding: 14px;
-      margin: 8px 0;
+      background: #fff; border: 1.5px solid #e0c98a;
+      border-radius: 12px; padding: 14px; margin: 8px 0;
     }
     .xc-slider-labels {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      color: #999;
-      margin-bottom: 10px;
-      line-height: 1.3;
+      display: flex; justify-content: space-between;
+      font-size: 11px; color: #999; margin-bottom: 10px; line-height: 1.3;
     }
     .xc-slider-track {
-      position: relative;
-      height: 8px;
-      background: #e8e8e8;
-      border-radius: 99px;
-      margin-bottom: 10px;
+      position: relative; height: 8px; background: #e8e8e8;
+      border-radius: 99px; margin-bottom: 10px;
     }
     .xc-slider-fill {
-      position: absolute;
-      left: 0; top: 0; bottom: 0;
+      position: absolute; left: 0; top: 0; bottom: 0;
       background: linear-gradient(90deg, #4f63d2, #7b8ff5);
-      border-radius: 99px;
-      width: 30%;
-      pointer-events: none;
-      transition: width 0.1s;
+      border-radius: 99px; width: 30%; pointer-events: none; transition: width 0.1s;
     }
     .xc-range {
-      position: absolute;
-      left: 0; top: -6px;
-      width: 100%;
-      height: 20px;
-      opacity: 0;
-      cursor: pointer;
-      margin: 0;
+      position: absolute; left: 0; top: -6px; width: 100%; height: 20px;
+      opacity: 0; cursor: pointer; margin: 0;
     }
     .xc-slider-result {
-      font-size: 13px;
-      color: #3a2008;
-      padding: 8px 10px;
-      background: #f8f4ec;
-      border-radius: 8px;
-      line-height: 1.6;
+      font-size: 13px; color: #3a2008; padding: 8px 10px;
+      background: #f8f4ec; border-radius: 8px; line-height: 1.6;
     }
     .xc-tip {
-      font-size: 12px;
-      color: #7a5218;
-      background: #fff9ec;
-      border-left: 3px solid #c9a464;
-      padding: 8px 10px;
-      border-radius: 0 8px 8px 0;
-      margin-top: 6px;
+      font-size: 12px; color: #7a5218; background: #fff9ec;
+      border-left: 3px solid #c9a464; padding: 8px 10px;
+      border-radius: 0 8px 8px 0; margin-top: 6px;
     }
 
     /* ── STEP INDICATOR ── */
-    .steps {
-      display: flex;
-      justify-content: center;
-      gap: 6px;
-      margin-bottom: 32px;
-    }
-    .step-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--border);
-      transition: all 0.3s;
-    }
+    .steps { display: flex; justify-content: center; gap: 6px; margin-bottom: 32px; }
+    .step-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: all 0.3s; }
     .step-dot.active { background: var(--gold); width: 24px; border-radius: 4px; }
 
     /* ── ROW ── */
@@ -531,6 +484,7 @@
       .card-body { padding: 28px 24px; }
       .card-header { padding: 36px 24px 28px; }
       .row-2 { grid-template-columns: 1fr; }
+      .orientasi-group { grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
@@ -541,17 +495,14 @@
   <div class="card-header">
     <div class="logo-wrap">
       <img src="https://pub-02d853231cff4efa92ee6754c646a898.r2.dev/Logo_HM.png"
-           alt="Hana Memoria Logo"
-           id="logoImg"
+           alt="Hana Memoria Logo" id="logoImg"
            onerror="this.style.display='none';document.querySelector('.logo-text-fallback').style.display='block';">
-      <div class="logo-text-fallback" style="display:none; font-family:'Cormorant Garamond',serif; font-size:52px; font-weight:300; letter-spacing:0.1em; color:var(--gold); line-height:1; padding:10px 0; text-shadow: 0 2px 8px #b8935a30;">HM</div>
+      <div class="logo-text-fallback" style="display:none; font-family:'Cormorant Garamond',serif; font-size:52px; font-weight:300; letter-spacing:0.1em; color:var(--gold); line-height:1; padding:10px 0;">HM</div>
     </div>
     <p class="tagline">Mengabadikan cerita dalam setiap bingkai</p>
     <h1>Form Pemesanan</h1>
     <div class="header-divider">
-      <span></span>
-      <em>✦</em>
-      <span></span>
+      <span></span><em>✦</em><span></span>
     </div>
   </div>
 
@@ -655,6 +606,30 @@
         <input type="hidden" name="link_foto_raw" id="link_foto_raw">
       </div>
 
+      <!-- ORIENTASI FOTO -->
+      <div class="fg">
+        <label>🖼️ Orientasi Foto</label>
+        <span class="warm-hint">Sesuaikan dengan arah fotomu ya 🌿</span>
+        <div class="orientasi-group">
+          <div class="orientasi-option">
+            <input type="radio" name="orientasi" id="orientasi_portrait" value="portrait" checked>
+            <label class="orientasi-label" for="orientasi_portrait">
+              <span class="orientasi-icon">📱</span>
+              <span class="orientasi-name">Potret</span>
+              <span class="orientasi-desc">Vertikal<br>(tinggi)</span>
+            </label>
+          </div>
+          <div class="orientasi-option">
+            <input type="radio" name="orientasi" id="orientasi_landscape" value="landscape">
+            <label class="orientasi-label" for="orientasi_landscape">
+              <span class="orientasi-icon">🖼️</span>
+              <span class="orientasi-name">Lanskap</span>
+              <span class="orientasi-desc">Horizontal<br>(lebar)</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
       <div class="fg">
         <label>🎬 Video Kenangan</label>
         <span class="warm-hint">Video singkat 15–30 detik sudah cukup untuk menyimpan momen terbaik 🥰</span>
@@ -664,21 +639,16 @@
         <button type="button" id="btn_upload_video" class="upload-btn">
           <span>🎬</span> Pilih Video
         </button>
-        <!-- Hidden file input for size pre-check -->
         <input type="file" id="video_precheck" accept="video/*" style="display:none">
 
-        <!-- COMPRESS BOX — muncul jika video > 30MB -->
+        <!-- COMPRESS BOX -->
         <div class="compress-box" id="compress-box">
           <h5>⚠️ Video terlalu besar dari 15 MB!</h5>
           <p>Tenang, bisa dikompres dulu secara gratis di <b>xconvert.com</b> — ikuti panduan di bawah ya 💕</p>
-
           <a href="https://xconvert.com/video-compressor" target="_blank" rel="noopener" class="compress-link primary" style="display:inline-flex;margin-bottom:14px;">
             🎬 Buka xconvert.com (Gratis!)
           </a>
-
           <div class="xc-guide">
-
-            <!-- STEP 1 -->
             <div class="xc-step">
               <div class="xc-step-num">1</div>
               <div class="xc-step-body">
@@ -686,8 +656,6 @@
                 <p>Klik tombol <span class="xc-badge">+ Add File</span> lalu pilih video dari galerimu</p>
               </div>
             </div>
-
-            <!-- STEP 2 -->
             <div class="xc-step">
               <div class="xc-step-num">2</div>
               <div class="xc-step-body">
@@ -701,15 +669,11 @@
                 </div>
               </div>
             </div>
-
-            <!-- STEP 3 -->
             <div class="xc-step">
               <div class="xc-step-num">3</div>
               <div class="xc-step-body">
                 <b>Geser slider ke angka <span id="pct-label" style="color:#c9a464">30%</span></b>
                 <p>Semakin kecil angkanya, semakin kecil ukuran videonya 👇</p>
-
-                <!-- Interactive slider illustration -->
                 <div class="xc-slider-wrap">
                   <div class="xc-slider-labels">
                     <span>1%<br><small>Sangat kecil</small></span>
@@ -725,14 +689,11 @@
                     <span id="result-ok" style="color:#4caf50;font-weight:700"> ✅ Aman diupload!</span>
                   </div>
                 </div>
-
                 <div class="xc-tip" id="xc-tip">
                   💡 <b>Rekomendasi:</b> Geser ke <b>30–35%</b> untuk hasil terbaik
                 </div>
               </div>
             </div>
-
-            <!-- STEP 4 -->
             <div class="xc-step">
               <div class="xc-step-num">4</div>
               <div class="xc-step-body">
@@ -740,8 +701,6 @@
                 <p>Setelah selesai, klik <span class="xc-badge green">⬇ Download</span> dan simpan ke HP</p>
               </div>
             </div>
-
-            <!-- STEP 5 -->
             <div class="xc-step">
               <div class="xc-step-num">5</div>
               <div class="xc-step-body">
@@ -749,8 +708,7 @@
                 <p>Kembali ke form ini dan klik tombol <b>Pilih Video</b> lagi</p>
               </div>
             </div>
-
-          </div><!-- end xc-guide -->
+          </div>
         </div>
 
         <div class="upload-success" id="status_video">✅ Video berhasil diunggah!</div>
@@ -783,18 +741,15 @@
 </div>
 
 <script>
-  // ── CONFIG ──
   const CLOUD_NAME    = 'dg5sjaueq';
   const UPLOAD_PRESET = 'hm_preset';
   const WORKER_URL    = 'https://hm-backend.hanamemoria.workers.dev/';
-
   const HARGA = { 'Gantungan Kunci': 20000, 'Figura': 50000, 'Frame 12 Bulan': 85000 };
 
-  // ── XCONVERT SLIDER LOGIC ──
+  // ── XCONVERT SLIDER ──
   const xcRange = document.getElementById('xc-range');
   if (xcRange) {
-    window._videoFileSizeMB = 41; // default estimate, updated when file selected
-
+    window._videoFileSizeMB = 41;
     function updateSliderDisplay(pct) {
       const fill = document.getElementById('slider-fill');
       const pctLabel = document.getElementById('pct-label');
@@ -802,46 +757,29 @@
       const resultOk = document.getElementById('result-ok');
       const xcTip = document.getElementById('xc-tip');
       const sliderResult = document.getElementById('slider-result');
-
       if (!fill || !sliderResult) return;
-
       fill.style.width = pct + '%';
       if (pctLabel) pctLabel.textContent = pct + '%';
-
       const estimated = +(window._videoFileSizeMB * pct / 100).toFixed(1);
       if (resultMb) resultMb.textContent = estimated + ' MB';
-      if (sliderResult) sliderResult.childNodes[0].textContent =
-        `📁 Video ${window._videoFileSizeMB} MB → sekitar `;
-
+      if (sliderResult) sliderResult.childNodes[0].textContent = `📁 Video ${window._videoFileSizeMB} MB → sekitar `;
       if (resultOk) {
-        if (estimated <= 15) {
-          resultOk.textContent = ' ✅ Aman diupload!';
-          resultOk.style.color = '#4caf50';
-        } else {
-          resultOk.textContent = ' ⚠️ Masih terlalu besar, geser lebih kecil';
-          resultOk.style.color = '#e67e22';
-        }
+        if (estimated <= 15) { resultOk.textContent = ' ✅ Aman diupload!'; resultOk.style.color = '#4caf50'; }
+        else { resultOk.textContent = ' ⚠️ Masih terlalu besar, geser lebih kecil'; resultOk.style.color = '#e67e22'; }
       }
-
       if (xcTip) {
-        if (pct <= 20) {
-          xcTip.innerHTML = '💡 <b>Kualitas akan berkurang.</b> Coba 25–35% jika hasilnya terlalu buram.';
-        } else if (pct <= 40) {
-          xcTip.innerHTML = '✨ <b>Rekomendasi zona terbaik!</b> Kualitas bagus & ukuran kecil.';
-        } else if (pct <= 60) {
-          xcTip.innerHTML = '💡 Ukuran masih agak besar. Coba geser lebih ke kiri ya.';
-        } else {
-          xcTip.innerHTML = '⚠️ Terlalu besar, geser ke kiri hingga hasil di bawah 15 MB.';
-        }
+        if (pct <= 20) xcTip.innerHTML = '💡 <b>Kualitas akan berkurang.</b> Coba 25–35% jika hasilnya terlalu buram.';
+        else if (pct <= 40) xcTip.innerHTML = '✨ <b>Rekomendasi zona terbaik!</b> Kualitas bagus & ukuran kecil.';
+        else if (pct <= 60) xcTip.innerHTML = '💡 Ukuran masih agak besar. Coba geser lebih ke kiri ya.';
+        else xcTip.innerHTML = '⚠️ Terlalu besar, geser ke kiri hingga hasil di bawah 15 MB.';
       }
     }
-
     window.updateSliderDisplay = updateSliderDisplay;
     xcRange.addEventListener('input', () => updateSliderDisplay(xcRange.value));
     updateSliderDisplay(xcRange.value);
   }
 
-
+  // ── LOGO FALLBACK ──
   const logoEl = document.getElementById('logoImg');
   if (logoEl) {
     logoEl.onerror = function() {
@@ -891,7 +829,6 @@
     maxVideoFileSize: 15728640, multiple: false
   }, (err, res) => {
     const compressBox = document.getElementById('compress-box');
-    // Detect file too large error from Cloudinary widget
     if (err) {
       if (err.status === 'too_large' || (err.message && err.message.toLowerCase().includes('large'))) {
         compressBox.style.display = 'block';
@@ -900,13 +837,8 @@
       return;
     }
     if (res?.event === 'queues-end' && res?.info?.files) {
-      // check if any file was rejected for size
       const rejected = res.info.files.some(f => f.size > 15728640);
-      if (rejected) {
-        compressBox.style.display = 'block';
-        compressBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-      }
+      if (rejected) { compressBox.style.display = 'block'; compressBox.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
     }
     if (res?.event === 'success') {
       compressBox.style.display = 'none';
@@ -919,13 +851,11 @@
 
   document.getElementById('btn_upload_foto').addEventListener('click', () => widgetFoto.open());
 
-  // VIDEO SIZE PRE-CHECK: intercept click, check file size before opening Cloudinary widget
   const _origVideoBtn = document.getElementById('btn_upload_video');
   const _videoPrecheck = document.getElementById('video_precheck');
 
   _origVideoBtn.addEventListener('click', () => {
     document.getElementById('compress-box').style.display = 'none';
-    // Use hidden file input to pre-check size
     _videoPrecheck.value = '';
     _videoPrecheck.click();
   });
@@ -933,23 +863,20 @@
   _videoPrecheck.addEventListener('change', () => {
     const file = _videoPrecheck.files[0];
     if (!file) return;
-    // Update slider with real file size
     window._videoFileSizeMB = +(file.size / (1024 * 1024)).toFixed(1);
     if (window.updateSliderDisplay && document.getElementById('xc-range')) {
       window.updateSliderDisplay(document.getElementById('xc-range').value);
     }
-    const MAX = 15 * 1024 * 1024; // 15 MB
+    const MAX = 15 * 1024 * 1024;
     if (file.size > MAX) {
       const compressBox = document.getElementById('compress-box');
       compressBox.style.display = 'block';
       compressBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else {
-      // File OK — open Cloudinary widget
       widgetVideo.open();
     }
   });
 
-  // Listen for Cloudinary widget upload-added event to catch oversized files early
   widgetVideo.on && widgetVideo.on('upload-added', (err, res) => {
     if (res?.info?.file?.size > 15728640) {
       const compressBox = document.getElementById('compress-box');
@@ -966,10 +893,7 @@
 
   fetch(`${API}/provinces.json`).then(r=>r.json()).then(data => {
     provEl.innerHTML = '<option value="" disabled selected>Pilih Provinsi…</option>';
-    data.forEach(p => {
-      const o = document.createElement('option');
-      o.value = p.id; o.text = p.name; provEl.appendChild(o);
-    });
+    data.forEach(p => { const o = document.createElement('option'); o.value = p.id; o.text = p.name; provEl.appendChild(o); });
   });
 
   provEl.addEventListener('change', e => {
@@ -1009,6 +933,7 @@
     const kota   = kotaEl.value;
     const kec    = kecEl.value;
     const alamat = document.querySelector('[name=alamat_detail]').value.trim();
+    const orientasi = document.querySelector('[name=orientasi]:checked').value;
 
     if (!nama)   { alert('⚠️ Nama lengkap wajib diisi!'); return; }
     if (!wa)     { alert('⚠️ Nomor WhatsApp wajib diisi!'); return; }
@@ -1029,6 +954,7 @@
 
     const payload = {
       nama, whatsapp: wa, jenis, jumlah,
+      orientasi,
       id_provinsi:   provEl.value,
       provinsi:      document.getElementById('nama_provinsi').value,
       id_kota:       kotaEl.value,
@@ -1065,7 +991,6 @@
     });
   }
 </script>
-
 
 </body>
 </html>
